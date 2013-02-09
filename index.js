@@ -65,11 +65,28 @@ exports.readStream = function(filename) {
   function readRecord(recordBytes) {
     return function() {
       if (bytesAvailable >= recordBytes) {
-        var record = process(recordBytes);
-        emitter.emit("record", record);
+        var record = process(recordBytes),
+            shapeType = record.readInt32LE(0);
+        emitter.emit("record", readShape[shapeType](record));
         bytesAvailable = 0;
         read = readRecordHeader;
       }
+    };
+  }
+
+  var readShape = {
+    5: readPolygon
+  };
+
+  function readPolygon(record) {
+    var box = [record.readDoubleLE(4), record.readDoubleLE(12), record.readDoubleLE(20), record.readDoubleLE(28)],
+        numParts = record.readInt32LE(36),
+        numPoints = record.readInt32LE(40);
+    return {
+      shapeType: 5,
+      box: box,
+      numParts: numParts,
+      numPoints: numPoints
     };
   }
 

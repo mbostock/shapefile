@@ -84,15 +84,13 @@ exports.readStream = function(filename) {
     chunkHead.copy(buffer, 0, bytesChunk);
     chunkHead = chunkHead.next;
     bytesChunk = 0;
-    bytes -= bytesCopied;
 
-    while (bytes > chunkHead.length) {
-      bytes -= chunkHead.length;
+    while (bytes - bytesCopied > chunkHead.length) {
       chunkHead.copy(buffer, bytesCopied += chunkHead.length);
       chunkHead = chunkHead.next;
     }
 
-    chunkHead.copy(buffer, bytesCopied, 0, bytesChunk = bytes);
+    chunkHead.copy(buffer, bytesCopied, 0, bytesChunk = bytes - bytesCopied);
     return buffer;
   }
 

@@ -3,7 +3,7 @@ var fs = require("fs"),
 
 exports.readStream = function(filename) {
   var emitter = new events.EventEmitter(),
-      state = fileHeader,
+      read = readFileHeader,
       bytesAvailable = 0,
       bytesChunk = 0,
       chunkHead,
@@ -14,7 +14,7 @@ exports.readStream = function(filename) {
       .on("end", end)
       .on("error", error);
 
-  function fileHeader() {
+  function readFileHeader() {
     if (bytesAvailable >= 100) {
       var fileHeader = process(100),
           fileCode = fileHeader.readInt32BE(0), // TODO verify 9994
@@ -44,11 +44,11 @@ exports.readStream = function(filename) {
         mMax: mMax
       });
       bytesAvailable = 0;
-      state = recordHeader;
+      read = readRecordHeader;
     }
   }
 
-  function recordHeader() {
+  function readRecordHeader() {
     if (bytesAvailable >= 8) {
       var recordHeader = process(8),
           recordNumber = recordHeader.readInt32BE(0),
@@ -58,17 +58,17 @@ exports.readStream = function(filename) {
         recordBytes: recordBytes
       });
       bytesAvailable = 0;
-      state = record(recordBytes);
+      read = readRecord(recordBytes);
     }
   }
 
-  function record(recordBytes) {
+  function readRecord(recordBytes) {
     return function() {
       if (bytesAvailable >= recordBytes) {
         var record = process(recordBytes);
         emitter.emit("record", record);
         bytesAvailable = 0;
-        state = recordHeader;
+        read = readRecordHeader;
       }
     };
   }
@@ -99,7 +99,7 @@ exports.readStream = function(filename) {
     if (!chunkHead) chunkHead = chunk;
     chunkTail = chunk;
     bytesAvailable += chunk.length;
-    state();
+    read();
   }
 
   function error(e) {

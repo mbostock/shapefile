@@ -5,4 +5,4 @@ var shapefile = require("./");
 shapefile.shp.readStream("/dev/stdin")
     .on("fileheader", function(header) { console.log("fileheader", header); })
     .on("recordheader", function(header) { console.log("recordheader", header); })
-    .on("record", function(record) { console.log("record", {shapeType: record.shapeType}); });
+    .on("record", function(record) { console.log("record", record); });

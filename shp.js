@@ -58,9 +58,35 @@ exports.readStream = function(filename) {
 };
 
 var readShape = {
-  3: readPoly(3),
-  5: readPoly(5)
+  0: readNull,
+  1: readPoint,
+  3: readPoly(3), // PolyLine
+  5: readPoly(5), // Polygon
+  8: readMultiPoint
+  // 11: TODO readPointZ
+  // 13: TODO readPolyLineZ
+  // 15: TODO readPolygonZ
+  // 18: TODO readMultiPointZ
+  // 21: TODO readPointM
+  // 23: TODO readPolyLineM
+  // 25: TODO readPolygonM
+  // 28: TODO readMultiPointM
+  // 31: TODO readMultiPatch
 };
+
+function readNull() {
+  return null;
+}
+
+function readPoint(record) {
+  var x = record.readDoubleLE(4),
+      y = record.readDoubleLE(12);
+  return {
+    shapeType: 1,
+    x: x,
+    y: y
+  };
+}
 
 function readPoly(shapeType) {
   return function(record) {
@@ -81,5 +107,15 @@ function readPoly(shapeType) {
   };
 }
 
-// TODO
-// exports.read = function(filename, callback) {};
+function readMultiPoint(record) {
+  var box = [record.readDoubleLE(4), record.readDoubleLE(12), record.readDoubleLE(20), record.readDoubleLE(28)],
+      numPoints = record.readInt32LE(36),
+      i = 40,
+      points = [];
+  while (numPoints-- > 0) points.push([record.readDoubleLE(i), record.readDoubleLE(i + 8)]), i += 16;
+  return {
+    shapeType: 8,
+    box: box,
+    points: points
+  };
+}

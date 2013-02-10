@@ -1,0 +1,9 @@
+#!/usr/bin/env node
+
+var shapefile = require("./");
+
+shapefile.dbf.readStream("/dev/stdin")
+    .on("fileheader", function(header) { console.log("fileheader", header); })
+    .on("fielddescriptor", function(fieldDescriptor) { console.log("fielddescriptor", fieldDescriptor); })
+    .on("record", function(record) { console.log("record", record); })
+    .on("end", function() { console.log("end"); });

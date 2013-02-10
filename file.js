@@ -15,7 +15,16 @@ exports.readStream = function(filename) {
       .on("end", end)
       .on("error", error);
 
-  function process(bytes) {
+  function maybeRead() {
+    if (bytesAvailable >= bytesNeeded) {
+      var buffer = consume(bytesNeeded);
+      bytesAvailable -= bytesNeeded;
+      bytesNeeded = undefined;
+      read.call(emitter, buffer);
+    }
+  }
+
+  function consume(bytes) {
     if (bytesChunk + bytes <= chunkHead.length) {
       return chunkHead.slice(bytesChunk, bytesChunk += bytes);
     }
@@ -41,12 +50,7 @@ exports.readStream = function(filename) {
     if (!chunkHead) chunkHead = chunk;
     chunkTail = chunk;
     bytesAvailable += chunk.length;
-    if (bytesAvailable >= bytesNeeded) {
-      var buffer = process(bytesNeeded);
-      bytesAvailable -= bytesNeeded;
-      bytesNeeded = undefined;
-      read.call(emitter, buffer);
-    }
+    maybeRead();
   }
 
   function error(e) {
@@ -60,6 +64,7 @@ exports.readStream = function(filename) {
   emitter.read = function(bytes, callback) {
     bytesNeeded = bytes;
     read = callback;
+    process.nextTick(maybeRead);
   };
 
   return emitter;

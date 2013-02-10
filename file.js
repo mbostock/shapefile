@@ -4,6 +4,7 @@ var fs = require("fs"),
 exports.readStream = function(filename) {
   var emitter = new events.EventEmitter(),
       read,
+      readAll = false,
       bytesNeeded,
       bytesAvailable = 0,
       bytesChunk = 0,
@@ -22,6 +23,13 @@ exports.readStream = function(filename) {
       bytesAvailable -= bytesNeeded;
       bytesNeeded = undefined;
       read.call(emitter, buffer);
+    }
+  }
+
+  function maybeEnd() {
+    if (bytesAvailable < bytesNeeded) {
+      bytesNeeded = undefined;
+      emitter.emit("end");
     }
   }
 
@@ -59,11 +67,13 @@ exports.readStream = function(filename) {
   }
 
   function end() {
-    emitter.emit("end");
+    readAll = true;
+    process.nextTick(maybeEnd);
   }
 
   emitter.read = function(bytes, callback) {
     bytesNeeded = bytes;
+    if (readAll && bytesAvailable < bytesNeeded) return void process.nextTick(maybeEnd);
     read = callback;
     process.nextTick(maybeRead);
   };

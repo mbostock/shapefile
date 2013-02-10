@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+
+var shapefile = require("./");
+
+shapefile.read(process.argv[2], function(error, collection) {
+  if (error) return console.trace(error);
+  console.log(JSON.stringify(collection));
+});

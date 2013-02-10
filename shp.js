@@ -2,6 +2,8 @@ var file = require("./file");
 
 exports.readStream = function(filename) {
   var stream = file.readStream(filename),
+      shapeType,
+      readShapeType,
       read = stream.read;
 
   delete stream.read;
@@ -9,49 +11,30 @@ exports.readStream = function(filename) {
   read(100, readFileHeader);
 
   function readFileHeader(fileHeader) {
-    var fileCode = fileHeader.readInt32BE(0), // TODO verify 9994
-        fileBytes = fileHeader.readInt32BE(24) * 2,
-        version = fileHeader.readInt32LE(28), // TODO verify 1000
-        shapeType = fileHeader.readInt32LE(32),
-        xMin = fileHeader.readDoubleLE(36),
-        yMin = fileHeader.readDoubleLE(44),
-        xMax = fileHeader.readDoubleLE(52),
-        yMax = fileHeader.readDoubleLE(60),
-        zMin = fileHeader.readDoubleLE(68),
-        yMax = fileHeader.readDoubleLE(76),
-        mMin = fileHeader.readDoubleLE(84),
-        mMax = fileHeader.readDoubleLE(92);
-    stream.emit("fileheader", {
-      fileCode: fileCode,
-      fileBytes: fileBytes,
-      version: version,
-      shapeType: shapeType,
-      xMin: xMin,
-      xMax: xMax,
-      yMin: yMin,
-      yMax: yMax,
-      zMin: zMin,
-      yMax: yMax,
-      mMin: mMin,
-      mMax: mMax
+    stream.emit("header", {
+      fileCode: fileHeader.readInt32BE(0), // TODO verify 9994
+      version: fileHeader.readInt32LE(28), // TODO verify 1000
+      shapeType: shapeType = fileHeader.readInt32LE(32),
+      xMin: fileHeader.readDoubleLE(36),
+      xMax: fileHeader.readDoubleLE(52),
+      yMin: fileHeader.readDoubleLE(44),
+      yMax: fileHeader.readDoubleLE(60),
+      zMin: fileHeader.readDoubleLE(68),
+      zMax: fileHeader.readDoubleLE(76),
+      mMin: fileHeader.readDoubleLE(84),
+      mMax: fileHeader.readDoubleLE(92)
     });
+    readShapeType = readShape[shapeType];
     read(8, readRecordHeader);
   }
 
   function readRecordHeader(recordHeader) {
-    var recordNumber = recordHeader.readInt32BE(0),
-        recordBytes = recordHeader.readInt32BE(4) * 2;
-    stream.emit("recordheader", {
-      recordNumber: recordNumber,
-      recordBytes: recordBytes
+    // TODO verify var recordNumber = recordHeader.readInt32BE(0);
+    read(recordHeader.readInt32BE(4) * 2, function readRecord(record) {
+      // TODO verify var shapeType = record.readInt32LE(0);
+      stream.emit("record", readShapeType(record));
+      read(8, readRecordHeader);
     });
-    read(recordBytes, readRecord);
-  }
-
-  function readRecord(record) {
-    var shapeType = record.readInt32LE(0);
-    stream.emit("record", readShape[shapeType](record));
-    read(8, readRecordHeader);
   }
 
   return stream;

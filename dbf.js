@@ -70,7 +70,9 @@ function fieldString(d) {
 }
 
 function fieldBoolean(d) {
-  return d === "T";
+  return /^[nf]$/i.test(d) ? false
+      : /^[yt]$/i.test(d) ? true
+      : undefined;
 }
 
 function fieldName(string) {

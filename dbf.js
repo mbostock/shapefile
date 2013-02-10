@@ -53,11 +53,7 @@ exports.readStream = function(filename) {
   function readRecord(record) {
     var i = 1;
     stream.emit("record", fieldDescriptors.map(function(field) {
-      var value = record.toString("ascii", i, i += field.fieldLength);
-      switch (field.fieldType) {
-        case "F": case "N": return +value;
-      }
-      return value.trim();
+      return fieldTypes[field.fieldType](record.toString("ascii", i, i += field.fieldLength));
     }));
     read(recordBytes, readRecord);
   }
@@ -69,3 +65,25 @@ exports.readStream = function(filename) {
 
   return stream;
 };
+
+var fieldTypes = {
+  B: fieldNumber,
+  C: fieldString,
+  D: fieldString,
+  F: fieldNumber,
+  L: fieldBoolean,
+  M: fieldNumber,
+  N: fieldNumber
+};
+
+function fieldNumber(d) {
+  return +d;
+}
+
+function fieldString(d) {
+  return d.trim();
+}
+
+function fieldBoolean(d) {
+  return d === "T";
+}

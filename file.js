@@ -10,6 +10,7 @@ exports.readStream = function(filename) {
       chunkHead,
       chunkTail;
 
+  // TODO data and end probably shouldn't be exposed to clients
   fs.createReadStream(filename)
       .on("data", data)
       .on("end", end)

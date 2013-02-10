@@ -3,6 +3,7 @@ var file = require("./file");
 exports.readStream = function(filename) {
   var stream = file.readStream(filename),
       read = stream.read,
+      fieldDescriptors = [],
       recordBytes;
 
   delete stream.read;
@@ -26,30 +27,44 @@ exports.readStream = function(filename) {
       headerBytes: headerBytes,
       recordBytes: recordBytes
     });
-    read(headerBytes, readFields);
+    read(headerBytes - 32, readFields);
   }
 
   function readFields(fields) {
     var n = 0;
     while (fields.readUInt8(n) != 0x0d) {
-      var fieldName = fields.toString("ascii", n, n + 11).replace(/\0/g, ""),
+      var fieldName = cut(fields.toString("ascii", n, n + 11)),
           fieldType = fields.toString("ascii", n + 11, n + 12),
-          fieldLength = fields.readUInt8(16),
-          fieldCount = fields.readUInt8(17);
-      stream.emit("fielddescriptor", {
+          fieldLength = fields.readUInt8(n + 16),
+          fieldCount = fields.readUInt8(n + 17),
+          field;
+      fieldDescriptors.push(field = {
         fieldName: fieldName,
         fieldType: fieldType,
         fieldLength: fieldLength,
         fieldCount: fieldCount
       });
+      stream.emit("fielddescriptor", field);
       n += 32;
     }
     read(recordBytes, readRecord);
   }
 
   function readRecord(record) {
-    stream.emit("record", record.toString("ascii"));
+    var i = 1;
+    stream.emit("record", fieldDescriptors.map(function(field) {
+      var value = record.toString("ascii", i, i += field.fieldLength);
+      switch (field.fieldType) {
+        case "F": case "N": return +value;
+      }
+      return value.trim();
+    }));
     read(recordBytes, readRecord);
+  }
+
+  function cut(string) {
+    var i = string.indexOf("\0");
+    return i < 0 ? string : string.substring(0, i);
   }
 
   return stream;

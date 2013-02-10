@@ -11,7 +11,6 @@ exports.readStream = function(filename) {
       chunkHead,
       chunkTail;
 
-  // TODO data and end probably shouldn't be exposed to clients
   fs.createReadStream(filename)
       .on("data", data)
       .on("end", end)
@@ -46,7 +45,8 @@ exports.readStream = function(filename) {
     bytesChunk = 0;
 
     while (bytes - bytesCopied > chunkHead.length) {
-      chunkHead.copy(buffer, bytesCopied += chunkHead.length);
+      chunkHead.copy(buffer, bytesCopied);
+      bytesCopied += chunkHead.length;
       chunkHead = chunkHead.next;
     }
 

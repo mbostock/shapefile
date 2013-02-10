@@ -1,25 +1,34 @@
+var events = require("events");
+
 var shp = require("./shp"),
     dbf = require("./dbf");
 
-exports.read = function(filename, callback) {
+exports.readStream = function(filename) {
+  var emitter = new events.EventEmitter();
+
   if (/\.shp$/.test(filename)) filename = filename.substring(0, filename.length - 4);
 
   readProperties(filename, function(error, properties) {
-    if (error) return callback(error);
-    readGeometries(filename, function(error, geometries) {
-      if (error) return callback(error);
-      var i = -1, n = geometries.length, features = new Array(n);
-      while (++i < n) features[i] = {
-        type: "Feature",
-        properties: properties[i],
-        geometry: geometries[i]
-      };
-      callback(null, {
-        type: "FeatureCollection",
-        features: features
-      });
-    });
+    if (error) return void emitter.emit("error", error);
+    var geometries = [],
+        convert;
+
+    properties.reverse(); // for efficient pop
+
+    shp.readStream(filename + ".shp")
+        .on("header", function(header) { convert = convertGeometry[header.shapeType]; })
+        .on("record", function(record) {
+          emitter.emit("feature", {
+            type: "Feature",
+            properties: properties.pop(),
+            geometry: record == null ? null : convert(record)
+          });
+        })
+        .on("error", function() { emitter.emit("error", error); })
+        .on("end", function() { emitter.emit("end"); });
   });
+
+  return emitter;
 };
 
 function readProperties(filename, callback) {
@@ -35,17 +44,6 @@ function readProperties(filename, callback) {
       .on("record", function(record) { properties.push(convert(record)); })
       .on("error", callback)
       .on("end", function() { callback(null, properties); });
-}
-
-function readGeometries(filename, callback) {
-  var geometries = [],
-      convert;
-
-  shp.readStream(filename + ".shp")
-      .on("header", function(header) { convert = convertGeometry[header.shapeType]; })
-      .on("record", function(record) { geometries.push(record == null ? null : convert(record)); })
-      .on("error", callback)
-      .on("end", function() { callback(null, geometries); });
 }
 
 var convertGeometry = {
@@ -75,11 +73,8 @@ function convertPolyLine(record) {
 }
 
 function convertPolygon(record) {
-  return record.parts.length === 1 ? {
+  return {
     type: "Polygon",
-    coordinates: record.points
-  } : {
-    type: "MultiPolygon",
     coordinates: record.parts.map(function(i, j) {
       return record.points.slice(i, record.parts[j + 1]);
     })

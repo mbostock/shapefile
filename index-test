@@ -2,7 +2,8 @@
 
 var shapefile = require("./");
 
-shapefile.read(process.argv[2], function(error, collection) {
-  if (error) return console.trace(error);
-  console.log(JSON.stringify(collection));
-});
+console.log("{\"type\":\"FeatureCollection\",\"features\":[");
+
+shapefile.readStream(process.argv[2])
+    .on("feature", function(feature) { console.log(JSON.stringify(feature)); })
+    .on("end", function() { console.log("]}"); });

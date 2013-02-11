@@ -40,6 +40,38 @@ suite.addBatch({
     }
   },
 
+  "The header of a dBASE file with unicode property names": {
+    topic: function() {
+      var callback = this.callback;
+      dbf.readStream("./test/unicode-property.dbf")
+          .on("error", callback)
+          .on("header", function(header) { callback(null, header); });
+    },
+    "has the expected values": function(header) {
+      assert.deepEqual(header, {
+        count: 1,
+        date: new Date(Date.UTC(1995, 6, 26, 7)),
+        version: 3,
+        fields: [{name: "☃", type: "C", length: 80}]
+      });
+    }
+  },
+
+  "The records of a dBASE file with unicode property names": {
+    topic: function() {
+      var callback = this.callback, records = [];
+      dbf.readStream("./test/unicode-property.dbf")
+          .on("error", callback)
+          .on("record", function(record) { records.push(record); })
+          .on("end", function() { callback(null, records); });
+    },
+    "have the expected values": function(records) {
+      assert.deepEqual(records, [
+        ["ηελλο ςορλδ"]
+      ]);
+    }
+  },
+
   "The records of an empty dBASE file": {
     topic: function() {
       var callback = this.callback, records = [];

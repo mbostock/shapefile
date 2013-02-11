@@ -25,7 +25,7 @@ exports.readStream = function(filename) {
     var n = 0;
     while (fields.readUInt8(n) != 0x0d) {
       fieldDescriptors.push({
-        name: fieldName(fields.toString("ascii", n, n + 11)),
+        name: fieldName(fields.toString("utf-8", n, n + 11)),
         type: fields.toString("ascii", n + 11, n + 12),
         length: fields.readUInt8(n + 16)
       });
@@ -43,7 +43,7 @@ exports.readStream = function(filename) {
   function readRecord(record) {
     var i = 1;
     stream.emit("record", fieldDescriptors.map(function(field) {
-      return fieldTypes[field.type](record.toString("ascii", i, i += field.length));
+      return fieldTypes[field.type](record.toString("utf-8", i, i += field.length));
     }));
     read(recordBytes, readRecord);
   }

@@ -14,5 +14,8 @@
     "type": "git",
     "url": "http://github.com/mbostock/shapefile.git"
   },
-  "main": "./index.js"
+  "main": "./index.js",
+  "devDependencies": {
+    "vows": "0.7.x"
+  }
 }

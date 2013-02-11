@@ -15,14 +15,11 @@ exports.readStream = function(filename) {
       fileCode: fileHeader.readInt32BE(0), // TODO verify 9994
       version: fileHeader.readInt32LE(28), // TODO verify 1000
       shapeType: shapeType = fileHeader.readInt32LE(32),
-      xMin: fileHeader.readDoubleLE(36),
-      xMax: fileHeader.readDoubleLE(52),
-      yMin: fileHeader.readDoubleLE(44),
-      yMax: fileHeader.readDoubleLE(60),
-      zMin: fileHeader.readDoubleLE(68),
-      zMax: fileHeader.readDoubleLE(76),
-      mMin: fileHeader.readDoubleLE(84),
-      mMax: fileHeader.readDoubleLE(92)
+      box: [fileHeader.readDoubleLE(36), fileHeader.readDoubleLE(44), fileHeader.readDoubleLE(52), fileHeader.readDoubleLE(60)]
+      // TODO zMin: fileHeader.readDoubleLE(68)
+      // TODO zMax: fileHeader.readDoubleLE(76)
+      // TODO mMin: fileHeader.readDoubleLE(84)
+      // TODO mMax: fileHeader.readDoubleLE(92)
     });
     readShapeType = readShape[shapeType];
     read(8, readRecordHeader);
@@ -31,8 +28,8 @@ exports.readStream = function(filename) {
   function readRecordHeader(recordHeader) {
     // TODO verify var recordNumber = recordHeader.readInt32BE(0);
     read(recordHeader.readInt32BE(4) * 2, function readRecord(record) {
-      // TODO verify var shapeType = record.readInt32LE(0);
-      stream.emit("record", readShapeType(record));
+      var shapeType = record.readInt32LE(0);
+      stream.emit("record", shapeType ? readShapeType(record) : null);
       read(8, readRecordHeader);
     });
   }

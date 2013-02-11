@@ -1,0 +1,118 @@
+var vows = require("vows"),
+    assert = require("assert");
+
+var dbf = require("../dbf");
+
+var suite = vows.describe("dbf");
+
+suite.addBatch({
+  "The header of a simple dBASE file": {
+    topic: function() {
+      var callback = this.callback;
+      dbf.readStream("./test/boolean-property.dbf")
+          .on("error", callback)
+          .on("header", function(header) { callback(null, header); });
+    },
+    "has the expected values": function(header) {
+      assert.deepEqual(header, {
+        count: 9,
+        date: new Date(Date.UTC(1995, 6, 26, 7)),
+        version: 3,
+        fields: [{name: "foo", type: "L", length: 1}]
+      });
+    }
+  },
+
+  "The records of a simple dBASE file": {
+    topic: function() {
+      var callback = this.callback, records = [];
+      dbf.readStream("./test/boolean-property.dbf")
+          .on("error", callback)
+          .on("record", function(record) { records.push(record); })
+          .on("end", function() { callback(null, records); });
+    },
+    "have the expected values": function(records) {
+      assert.deepEqual(records, [
+        [null],
+        [true],
+        [true],
+        [false],
+        [false],
+        [true],
+        [true],
+        [false],
+        [false]
+      ]);
+    }
+  },
+
+  "The records of a dBASE file with a string property": {
+    topic: function() {
+      var callback = this.callback, records = [];
+      dbf.readStream("./test/string-property.dbf")
+          .on("error", callback)
+          .on("record", function(record) { records.push(record); })
+          .on("end", function() { callback(null, records); });
+    },
+    "have the expected values": function(records) {
+      assert.deepEqual(records, [
+        [""],
+        ["blue"],
+        ["green"]
+      ]);
+    }
+  },
+
+  "The records of a dBASE file with a number property": {
+    topic: function() {
+      var callback = this.callback, records = [];
+      dbf.readStream("./test/number-property.dbf")
+          .on("error", callback)
+          .on("record", function(record) { records.push(record); })
+          .on("end", function() { callback(null, records); });
+    },
+    "have the expected values": function(records) {
+      assert.deepEqual(records, [
+        [null],
+        [42],
+        [-4]
+      ]);
+    }
+  },
+
+  "The records of a dBASE file with a date property": {
+    topic: function() {
+      var callback = this.callback, records = [];
+      dbf.readStream("./test/date-property.dbf")
+          .on("error", callback)
+          .on("record", function(record) { records.push(record); })
+          .on("end", function() { callback(null, records); });
+    },
+    "have the expected values": function(records) {
+      assert.deepEqual(records, [
+        [new Date(2013, 0, 2)],
+        [new Date(2013, 1, 2)],
+        [new Date(2013, 0, 3)]
+      ]);
+    }
+  },
+
+  "The records of a dBASE file with multiple properties": {
+    topic: function() {
+      var callback = this.callback, records = [];
+      dbf.readStream("./test/mixed-properties.dbf")
+          .on("error", callback)
+          .on("record", function(record) { records.push(record); })
+          .on("end", function() { callback(null, records); });
+    },
+    "have the expected values": function(records) {
+      assert.deepEqual(records, [
+        [null, ""],
+        [42, ""],
+        [null, "blue"]
+      ]);
+    }
+  }
+});
+
+suite.export(module);

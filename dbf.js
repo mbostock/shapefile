@@ -54,7 +54,7 @@ exports.readStream = function(filename) {
 var fieldTypes = {
   B: fieldNumber,
   C: fieldString,
-  D: fieldString,
+  D: fieldDate,
   F: fieldNumber,
   L: fieldBoolean,
   M: fieldNumber,
@@ -62,17 +62,21 @@ var fieldTypes = {
 };
 
 function fieldNumber(d) {
-  return +d;
+  return isNaN(d = +d) ? null : d;
 }
 
 function fieldString(d) {
   return d.trim();
 }
 
+function fieldDate(d) {
+  return new Date(+d.substring(0, 4), d.substring(4, 6) - 1, +d.substring(6, 8));
+}
+
 function fieldBoolean(d) {
   return /^[nf]$/i.test(d) ? false
       : /^[yt]$/i.test(d) ? true
-      : undefined;
+      : null;
 }
 
 function fieldName(string) {

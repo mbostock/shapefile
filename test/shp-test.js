@@ -23,6 +23,36 @@ suite.addBatch({
     }
   },
 
+  "The header of an empty shapefile": {
+    topic: function() {
+      var callback = this.callback;
+      shp.readStream("./test/empty.shp")
+          .on("error", callback)
+          .on("header", function(header) { callback(null, header); });
+    },
+    "has the expected values": function(header) {
+      assert.deepEqual(header, {
+        fileCode: 9994,
+        version: 1000,
+        shapeType: 3,
+        box: [0, 0, 0, 0]
+      });
+    }
+  },
+
+  "The records of an empty shapefile": {
+    topic: function() {
+      var callback = this.callback, records = [];
+      shp.readStream("./test/empty.shp")
+          .on("error", callback)
+          .on("record", function(record) { records.push(record); })
+          .on("end", function() { callback(null, records); });
+    },
+    "have the expected values": function(records) {
+      assert.deepEqual(records, []);
+    }
+  },
+
   "The records of a shapefile of points": {
     topic: function() {
       var callback = this.callback, records = [];

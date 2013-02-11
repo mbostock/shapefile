@@ -23,6 +23,36 @@ suite.addBatch({
     }
   },
 
+  "The header of an empty dBASE file": {
+    topic: function() {
+      var callback = this.callback;
+      dbf.readStream("./test/empty.dbf")
+          .on("error", callback)
+          .on("header", function(header) { callback(null, header); });
+    },
+    "has the expected values": function(header) {
+      assert.deepEqual(header, {
+        count: 0,
+        date: new Date(Date.UTC(1995, 6, 26, 7)),
+        version: 3,
+        fields: []
+      });
+    }
+  },
+
+  "The records of an empty dBASE file": {
+    topic: function() {
+      var callback = this.callback, records = [];
+      dbf.readStream("./test/empty.dbf")
+          .on("error", callback)
+          .on("record", function(record) { records.push(record); })
+          .on("end", function() { callback(null, records); });
+    },
+    "have the expected values": function(records) {
+      assert.deepEqual(records, []);
+    }
+  },
+
   "The records of a simple dBASE file": {
     topic: function() {
       var callback = this.callback, records = [];

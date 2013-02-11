@@ -1,0 +1,18 @@
+#!/usr/bin/env node
+
+var shapefile = require("../");
+
+console.log("{\"type\":\"FeatureCollection\",\"features\":[");
+
+var i = -1,
+    previous;
+
+shapefile.readStream(process.argv[2])
+    .on("feature", function(feature) {
+      if (++i > 0) console.log(JSON.stringify(previous) + ",");
+      previous = feature;
+    })
+    .on("end", function() {
+      if (i > 0) console.log(JSON.stringify(previous));
+      console.log("]}");
+    });

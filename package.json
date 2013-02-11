@@ -17,5 +17,10 @@
   "main": "./index.js",
   "devDependencies": {
     "vows": "0.7.x"
+  },
+  "bin": {
+    "dbfcat": "./bin/dbfcat",
+    "shpcat": "./bin/shpcat",
+    "shp2json": "./bin/shp2json"
   }
 }

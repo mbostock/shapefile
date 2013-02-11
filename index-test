@@ -1,9 +1,0 @@
-#!/usr/bin/env node
-
-var shapefile = require("./");
-
-console.log("{\"type\":\"FeatureCollection\",\"features\":[");
-
-shapefile.readStream(process.argv[2])
-    .on("feature", function(feature) { console.log(JSON.stringify(feature)); })
-    .on("end", function() { console.log("]}"); });

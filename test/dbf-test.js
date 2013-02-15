@@ -118,7 +118,7 @@ suite.addBatch({
     },
     "have the expected values": function(records) {
       assert.deepEqual(records, [
-        [""],
+        [null],
         ["blue"],
         ["green"]
       ]);
@@ -169,8 +169,8 @@ suite.addBatch({
     },
     "have the expected values": function(records) {
       assert.deepEqual(records, [
-        [null, ""],
-        [42, ""],
+        [null, null],
+        [42, null],
         [null, "blue"]
       ]);
     }

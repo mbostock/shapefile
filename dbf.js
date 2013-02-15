@@ -66,7 +66,7 @@ function fieldNumber(d) {
 }
 
 function fieldString(d) {
-  return d.trim();
+  return d.trim() || null;
 }
 
 function fieldDate(d) {

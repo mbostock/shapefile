@@ -1,6 +1,6 @@
 {
   "name": "shapefile",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "An implementation of the shapefile (.shp) spatial data format.",
   "keywords": [
     "geojson",

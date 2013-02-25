@@ -19,6 +19,9 @@ TEST_FILES = \
 
 all: node_modules $(TEST_FILES)
 
+clean:
+	rm -f $(TEST_FILES)
+
 node_modules:
 	npm install
 

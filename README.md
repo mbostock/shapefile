@@ -14,4 +14,4 @@ The main API for reading a shapefile is shapefile.readStream. This returns an [e
 
 Features are emitted as [GeoJSON features](http://geojson.org/geojson-spec.html#feature-objects), not as shapefile primitives. That’s because GeoJSON objects are the standard representation of geometry in JavaScript, and they are convenient. If you want to access the shapefile primitives directly, use the private [shp](https://github.com/mbostock/shapefile/blob/master/shp.js) and [dbf](https://github.com/mbostock/shapefile/blob/master/dbf.js) classes instead.
 
-See [index-test](https://github.com/mbostock/shapefile/blob/master/index-test) for an example converting a shapefile to a GeoJSON feature collection.
+See [index-test](https://github.com/mbostock/shapefile/blob/master/test/index-test.js) for an example converting a shapefile to a GeoJSON feature collection.

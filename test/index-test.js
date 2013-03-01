@@ -13,7 +13,8 @@ suite.addBatch({
   "A shapefile with string properties": testConversion("string-property"),
   "A shapefile with mixed properties": testConversion("mixed-properties"),
   "A shapefile with date properties": testConversion("date-property"),
-  "A shapefile with unicode property names": testConversion("unicode-property"),
+  "A shapefile with UTF-8 property names": testConversion("utf8-property", "utf-8"),
+  "A shapefile with ISO-8859-1 property names": testConversion("latin1-property"),
   "A shapefile of points": testConversion("points"),
   "A shapefile of multipoints": testConversion("multipoints"),
   "A shapefile of polylines": testConversion("polylines"),
@@ -35,11 +36,11 @@ function fixExpectedProperties(feature) {
   if (d) feature.properties.date = new Date(+d.substring(0, 4), d.substring(4, 6) - 1, +d.substring(6, 8));
 }
 
-function testConversion(name) {
+function testConversion(name, encoding) {
   return {
     topic: function() {
       var callback = this.callback, features = [];
-      shapefile.readStream("./test/" + name + ".shp")
+      shapefile.readStream("./test/" + name + ".shp", encoding)
           .on("error", callback)
           .on("feature", function(feature) { features.push(feature); })
           .on("error", callback)

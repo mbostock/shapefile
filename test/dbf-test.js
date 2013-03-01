@@ -40,10 +40,42 @@ suite.addBatch({
     }
   },
 
-  "The header of a dBASE file with unicode property names": {
+  "The header of a dBASE file with ISO-8859-1 property names": {
     topic: function() {
       var callback = this.callback;
-      dbf.readStream("./test/unicode-property.dbf")
+      dbf.readStream("./test/latin1-property.dbf")
+          .on("error", callback)
+          .on("header", function(header) { callback(null, header); });
+    },
+    "has the expected values": function(header) {
+      assert.deepEqual(header, {
+        count: 1,
+        date: new Date(Date.UTC(1995, 6, 26, 7)),
+        version: 3,
+        fields: [{name: "name", type: "C", length: 80}]
+      });
+    }
+  },
+
+  "The records of a dBASE file with ISO-8859-1 property names": {
+    topic: function() {
+      var callback = this.callback, records = [];
+      dbf.readStream("./test/latin1-property.dbf")
+          .on("error", callback)
+          .on("record", function(record) { records.push(record); })
+          .on("end", function() { callback(null, records); });
+    },
+    "have the expected values": function(records) {
+      assert.deepEqual(records, [
+        ["México"]
+      ]);
+    }
+  },
+
+  "The header of a dBASE file with UTF-8 property names": {
+    topic: function() {
+      var callback = this.callback;
+      dbf.readStream("./test/utf8-property.dbf", "utf8")
           .on("error", callback)
           .on("header", function(header) { callback(null, header); });
     },
@@ -57,10 +89,10 @@ suite.addBatch({
     }
   },
 
-  "The records of a dBASE file with unicode property names": {
+  "The records of a dBASE file with UTF-8 property names": {
     topic: function() {
       var callback = this.callback, records = [];
-      dbf.readStream("./test/unicode-property.dbf")
+      dbf.readStream("./test/utf8-property.dbf", "utf8")
           .on("error", callback)
           .on("record", function(record) { records.push(record); })
           .on("end", function() { callback(null, records); });

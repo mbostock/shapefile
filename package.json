@@ -1,6 +1,6 @@
 {
   "name": "shapefile",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "An implementation of the shapefile (.shp) spatial data format.",
   "keywords": [
     "geojson",
@@ -15,6 +15,9 @@
     "url": "http://github.com/mbostock/shapefile.git"
   },
   "main": "./index.js",
+  "dependencies": {
+    "iconv": "2.0.x"
+  },
   "devDependencies": {
     "vows": "0.7.x"
   },

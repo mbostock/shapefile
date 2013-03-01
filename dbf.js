@@ -1,7 +1,9 @@
-var file = require("./file");
+var file = require("./file"),
+    iconv = require("iconv");
 
-exports.readStream = function(filename) {
+exports.readStream = function(filename, encoding) {
   var stream = file.readStream(filename),
+      decode = encoding === "utf8" ? utf8 : decoder(encoding || "ISO-8859-1"),
       read = stream.read,
       fileType,
       fileDate,
@@ -25,7 +27,7 @@ exports.readStream = function(filename) {
     var n = 0;
     while (fields.readUInt8(n) != 0x0d) {
       fieldDescriptors.push({
-        name: fieldName(fields.toString("utf-8", n, n + 11)),
+        name: fieldName(decode(fields, n, n + 11)),
         type: fields.toString("ascii", n + 11, n + 12),
         length: fields.readUInt8(n + 16)
       });
@@ -43,13 +45,24 @@ exports.readStream = function(filename) {
   function readRecord(record) {
     var i = 1;
     stream.emit("record", fieldDescriptors.map(function(field) {
-      return fieldTypes[field.type](record.toString("utf-8", i, i += field.length));
+      return fieldTypes[field.type](decode(record, i, i += field.length));
     }));
     read(recordBytes, readRecord);
   }
 
   return stream;
 };
+
+function decoder(encoding) {
+  var converter = new iconv.Iconv(encoding, "utf-8");
+  return function(buffer, i, j) {
+    return converter.convert(buffer.slice(i, j)).toString("utf-8");
+  };
+}
+
+function utf8(buffer, i, j) {
+  return buffer.toString("utf8", i, j);
+}
 
 var fieldTypes = {
   B: fieldNumber,

@@ -7,12 +7,12 @@ var π = Math.PI,
     π_4 = π / 4,
     radians = π / 180;
 
-exports.readStream = function(filename) {
+exports.readStream = function(filename, encoding) {
   var emitter = new events.EventEmitter();
 
   if (/\.shp$/.test(filename)) filename = filename.substring(0, filename.length - 4);
 
-  readProperties(filename, function(error, properties) {
+  readProperties(filename, encoding, function(error, properties) {
     if (error) return void emitter.emit("error", error);
     var geometries = [],
         convert;
@@ -35,11 +35,11 @@ exports.readStream = function(filename) {
   return emitter;
 };
 
-function readProperties(filename, callback) {
+function readProperties(filename, encoding, callback) {
   var properties = [],
       convert;
 
-  dbf.readStream(filename + ".dbf")
+  dbf.readStream(filename + ".dbf", encoding)
       .on("header", function(header) {
         convert = new Function("d", "return {"
             + header.fields.map(function(field, i) { return JSON.stringify(field.name) + ":d[" + i + "]"; })

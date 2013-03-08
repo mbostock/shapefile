@@ -3,7 +3,7 @@ var file = require("./file"),
 
 exports.readStream = function(filename, encoding) {
   var stream = file.readStream(filename),
-      decode = encoding === "utf8" ? utf8 : decoder(encoding || "ISO-8859-1"),
+      decode = utf8.test(encoding) ? decodeUtf8 : decoder(encoding || "ISO-8859-1"),
       read = stream.read,
       fileType,
       fileDate,
@@ -53,14 +53,16 @@ exports.readStream = function(filename, encoding) {
   return stream;
 };
 
+var utf8 = /^utf[-]?8$/i;
+
 function decoder(encoding) {
-  var converter = new iconv.Iconv(encoding, "utf-8");
+  var converter = new iconv.Iconv(encoding, "UTF-8");
   return function(buffer, i, j) {
-    return converter.convert(buffer.slice(i, j)).toString("utf-8");
+    return converter.convert(buffer.slice(i, j)).toString("utf8");
   };
 }
 
-function utf8(buffer, i, j) {
+function decodeUtf8(buffer, i, j) {
   return buffer.toString("utf8", i, j);
 }
 

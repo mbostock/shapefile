@@ -1,5 +1,5 @@
 var file = require("./file"),
-    iconv = require("iconv");
+    iconv = require("iconv-lite");
 
 exports.readStream = function(filename, encoding) {
   var stream = file.readStream(filename),
@@ -56,9 +56,8 @@ exports.readStream = function(filename, encoding) {
 var utf8 = /^utf[-]?8$/i;
 
 function decoder(encoding) {
-  var converter = new iconv.Iconv(encoding, "UTF-8");
   return function(buffer, i, j) {
-    return converter.convert(buffer.slice(i, j)).toString("utf8");
+    return iconv.decode(buffer.slice(i, j), encoding);
   };
 }
 

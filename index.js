@@ -93,7 +93,7 @@ function convertPolygon(record) {
         polygon.push(hole);
         return true;
       }
-    });
+    }) || polygons.push([hole]);
   });
 
   return polygons.length > 1

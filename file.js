@@ -1,6 +1,8 @@
 var fs = require("fs"),
     events = require("events");
 
+var nextTick = global.setImmediate || process.nextTick;
+
 exports.readStream = function(filename) {
   var emitter = new events.EventEmitter(),
       read,
@@ -68,14 +70,14 @@ exports.readStream = function(filename) {
 
   function end() {
     readAll = true;
-    process.nextTick(maybeEnd);
+    nextTick(maybeEnd);
   }
 
   emitter.read = function(bytes, callback) {
     bytesNeeded = bytes;
-    if (readAll && bytesAvailable < bytesNeeded) return void process.nextTick(maybeEnd);
+    if (readAll && bytesAvailable < bytesNeeded) return void nextTick(maybeEnd);
     read = callback;
-    process.nextTick(maybeRead);
+    nextTick(maybeRead);
   };
 
   return emitter;

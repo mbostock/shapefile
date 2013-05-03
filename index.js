@@ -7,30 +7,45 @@ var π = Math.PI,
     π_4 = π / 4,
     radians = π / 180;
 
-exports.readStream = function(filename, encoding) {
-  var emitter = new events.EventEmitter();
+exports.readStream = function(filename, options) {
+  var emitter = new events.EventEmitter(),
+      convert,
+      encoding = null,
+      ignoreProperties = false;
+
+  if (typeof options === "string") options = {encoding: options};
+
+  if (options)
+    "encoding" in options && (encoding = options["encoding"]),
+    "ignore-properties" in options && (ignoreProperties = !!options["ignore-properties"]);
 
   if (/\.shp$/.test(filename)) filename = filename.substring(0, filename.length - 4);
 
-  readProperties(filename, encoding, function(error, properties) {
-    if (error) return void emitter.emit("error", error);
-    var geometries = [],
-        convert;
+  if (ignoreProperties) {
+    readGeometry(emptyProperties);
+  } else {
+    readProperties(filename, encoding, function(error, properties) {
+      if (error) return void emitter.emit("error", error);
+      properties.reverse(); // for efficient pop
+      readGeometry(function() {
+        return properties.pop();
+      });
+    });
+  }
 
-    properties.reverse(); // for efficient pop
-
+  function readGeometry(properties) {
     shp.readStream(filename + ".shp")
         .on("header", function(header) { convert = convertGeometry[header.shapeType]; })
         .on("record", function(record) {
           emitter.emit("feature", {
             type: "Feature",
-            properties: properties.pop(),
+            properties: properties(),
             geometry: record == null ? null : convert(record)
           });
         })
         .on("error", function() { emitter.emit("error", error); })
         .on("end", function() { emitter.emit("end"); });
-  });
+  }
 
   return emitter;
 };
@@ -56,6 +71,10 @@ var convertGeometry = {
   5: convertPolygon,
   8: convertMultiPoint
 };
+
+function emptyProperties() {
+  return {};
+}
 
 function convertPoint(record) {
   return {

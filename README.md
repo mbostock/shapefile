@@ -6,7 +6,12 @@ Caveat emptor: this library is a work in progress and does not currently support
 
 ## Reading a Shapefile
 
-The main API for reading a shapefile is shapefile.readStream. This returns an [event emitter](http://nodejs.org/api/events.html) which emits three types of events:
+The main API for reading a shapefile is shapefile.<b>readStream</b>(<i>filename</i>[, <i>options</i>]). The supported options are:
+
+* *encoding* - the DBF encoding (defaults to ISO-8859-1)
+* *ignore-properties* - if true, don’t read properties (faster; defaults to false)
+
+This method returns an [event emitter](http://nodejs.org/api/events.html) which emits three types of events:
 
 * *feature* - while reading features from the shapefile
 * *end* - when all features have been read

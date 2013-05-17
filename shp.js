@@ -21,6 +21,7 @@ exports.readStream = function(filename) {
       // TODO mMin: fileHeader.readDoubleLE(84)
       // TODO mMax: fileHeader.readDoubleLE(92)
     });
+    if (!(shapeType in readShape)) return void stream.emit("error", new Error("unsupported shape type: " + shapeType));
     readShapeType = readShape[shapeType];
     read(8, readRecordHeader);
   }

@@ -43,7 +43,7 @@ exports.readStream = function(filename, options) {
             geometry: record == null ? null : convert(record)
           });
         })
-        .on("error", function() { emitter.emit("error", error); })
+        .on("error", function(error) { emitter.emit("error", error); })
         .on("end", function() { emitter.emit("end"); });
   }
 

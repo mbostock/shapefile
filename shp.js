@@ -43,11 +43,11 @@ var readShape = {
   1: readPoint,
   3: readPoly(3), // PolyLine
   5: readPoly(5), // Polygon
-  8: readMultiPoint
-  // 11: TODO readPointZ
-  // 13: TODO readPolyLineZ
-  // 15: TODO readPolygonZ
-  // 18: TODO readMultiPointZ
+  8: readMultiPoint,
+  11: readPoint, // PointZ
+  13: readPoly(3), // PolyLineZ
+  15: readPoly(5), // PolygonZ
+  18: readMultiPoint // MultiPointZ
   // 21: TODO readPointM
   // 23: TODO readPolyLineM
   // 25: TODO readPolygonM

@@ -69,7 +69,11 @@ var convertGeometry = {
   1: convertPoint,
   3: convertPolyLine,
   5: convertPolygon,
-  8: convertMultiPoint
+  8: convertMultiPoint,
+  11: convertPoint, // PointZ
+  13: convertPolyLine, // PolyLineZ
+  15: convertPolygon, // PolygonZ
+  18: convertMultiPoint // MultiPointZ
 };
 
 function emptyProperties() {

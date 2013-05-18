@@ -1,7 +1,8 @@
 var events = require("events");
 
 var shp = require("./shp"),
-    dbf = require("./dbf");
+    dbf = require("./dbf"),
+    list = require("./list");
 
 var π = Math.PI,
     π_4 = π / 4,
@@ -24,14 +25,14 @@ exports.readStream = function(filename, options) {
   if (ignoreProperties) {
     readGeometry(emptyNextProperties, emptyEnd);
   } else {
-    var propertiesQueue = [],
-        callbackQueue = [],
+    var propertiesQueue = list(),
+        callbackQueue = list(),
         endCallback,
         ended;
 
     readProperties(filename, encoding, function(error, properties) {
       if (error) return void emitter.emit("error", error);
-      if (callbackQueue.length) return void callbackQueue.shift()(null, properties);
+      if (!callbackQueue.empty()) return void callbackQueue.pop()(null, properties);
       propertiesQueue.push(properties);
     }, function() {
       if (endCallback) return void endCallback(null);
@@ -39,7 +40,7 @@ exports.readStream = function(filename, options) {
     });
 
     readGeometry(function(callback) {
-      if (propertiesQueue.length) return void callback(null, propertiesQueue.shift());
+      if (!propertiesQueue.empty()) return void callback(null, propertiesQueue.pop());
       callbackQueue.push(callback);
     }, function(callback) {
       if (ended) return void callback(null);

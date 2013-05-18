@@ -2,17 +2,16 @@
 
 var shapefile = require("../");
 
-console.log("{\"type\":\"FeatureCollection\",\"features\":[");
+process.stdout.write("{\"type\":\"FeatureCollection\",\"features\":[\n");
 
-var i = -1,
-    previous;
+var previous;
 
 shapefile.readStream(process.argv[2])
     .on("feature", function(feature) {
-      if (++i > 0) console.log(JSON.stringify(previous) + ",");
-      previous = feature;
+      if (previous) process.stdout.write(",\n");
+      process.stdout.write(JSON.stringify(feature));
+      previous = true;
     })
     .on("end", function() {
-      if (i > 0) console.log(JSON.stringify(previous));
-      console.log("]}");
+      process.stdout.write("]}\n");
     });

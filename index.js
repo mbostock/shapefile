@@ -22,35 +22,61 @@ exports.readStream = function(filename, options) {
   if (/\.shp$/.test(filename)) filename = filename.substring(0, filename.length - 4);
 
   if (ignoreProperties) {
-    readGeometry(emptyProperties);
+    readGeometry(emptyNextProperties, emptyEnd);
   } else {
+    var propertiesQueue = [],
+        callbackQueue = [],
+        endCallback,
+        ended;
+
     readProperties(filename, encoding, function(error, properties) {
       if (error) return void emitter.emit("error", error);
-      properties.reverse(); // for efficient pop
-      readGeometry(function() {
-        return properties.pop();
-      });
+      if (callbackQueue.length) return void callbackQueue.shift()(null, properties);
+      propertiesQueue.push(properties);
+    }, function() {
+      if (endCallback) return void endCallback(null);
+      ended = true;
+    });
+
+    readGeometry(function(callback) {
+      if (propertiesQueue.length) return void callback(null, propertiesQueue.shift());
+      callbackQueue.push(callback);
+    }, function(callback) {
+      if (ended) return void callback(null);
+      endCallback = callback;
     });
   }
 
-  function readGeometry(properties) {
+  function readGeometry(readNextProperties, readEnd) {
     shp.readStream(filename + ".shp")
-        .on("header", function(header) { convert = convertGeometry[header.shapeType]; })
+        .on("header", function(header) {
+          convert = convertGeometry[header.shapeType];
+        })
         .on("record", function(record) {
-          emitter.emit("feature", {
-            type: "Feature",
-            properties: properties(),
-            geometry: record == null ? null : convert(record)
+          readNextProperties(function(error, properties) {
+            if (error) return void emitter.emit("error", error);
+            emitter.emit("feature", {
+              type: "Feature",
+              properties: properties,
+              geometry: record == null ? null : convert(record)
+            });
           });
         })
-        .on("error", function(error) { emitter.emit("error", error); })
-        .on("end", function() { emitter.emit("end"); });
+        .on("error", function(error) {
+          emitter.emit("error", error);
+        })
+        .on("end", function() {
+          readEnd(function(error) {
+            if (error) return void emitter.emit("error", error);
+            emitter.emit("end");
+          });
+        });
   }
 
   return emitter;
 };
 
-function readProperties(filename, encoding, callback) {
+function readProperties(filename, encoding, propertyCallback, endCallback) {
   var properties = [],
       convert;
 
@@ -60,9 +86,9 @@ function readProperties(filename, encoding, callback) {
             + header.fields.map(function(field, i) { return JSON.stringify(field.name) + ":d[" + i + "]"; })
             + "};");
       })
-      .on("record", function(record) { properties.push(convert(record)); })
-      .on("error", callback)
-      .on("end", function() { callback(null, properties); });
+      .on("record", function(record) { propertyCallback(null, convert(record)); })
+      .on("error", propertyCallback)
+      .on("end", endCallback);
 }
 
 var convertGeometry = {
@@ -76,8 +102,12 @@ var convertGeometry = {
   18: convertMultiPoint // MultiPointZ
 };
 
-function emptyProperties() {
-  return {};
+function emptyNextProperties(callback) {
+  callback(null, {});
+}
+
+function emptyEnd(callback) {
+  callback(null);
 }
 
 function convertPoint(record) {

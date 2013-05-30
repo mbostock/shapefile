@@ -159,7 +159,7 @@ function convertMultiPoint(record) {
 }
 
 function ringClockwise(ring) {
-  if ((n = ring.length) < 3) return false;
+  if ((n = ring.length) < 4) return false;
   var i = 0,
       n,
       area = ring[n - 1][1] * ring[0][0] - ring[n - 1][0] * ring[0][1];

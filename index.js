@@ -4,10 +4,6 @@ var shp = require("./shp"),
     dbf = require("./dbf"),
     list = require("./list");
 
-var π = Math.PI,
-    π_4 = π / 4,
-    radians = π / 180;
-
 exports.readStream = function(filename, options) {
   var emitter = new events.EventEmitter(),
       convert,

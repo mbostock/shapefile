@@ -74,11 +74,12 @@ function readPoly(shapeType) {
     var box = [record.readDoubleLE(4), record.readDoubleLE(12), record.readDoubleLE(20), record.readDoubleLE(28)],
         numParts = record.readInt32LE(36),
         numPoints = record.readInt32LE(40),
+        parts = new Array(numParts),
+        points = new Array(numPoints),
         i = 44,
-        parts = [],
-        points = [];
-    while (numParts-- > 0) parts.push(record.readInt32LE(i)), i += 4;
-    while (numPoints-- > 0) points.push([record.readDoubleLE(i), record.readDoubleLE(i + 8)]), i += 16;
+        j;
+    for (j = 0; j < numParts; ++j, i += 4) parts[j] = record.readInt32LE(i);
+    for (j = 0; j < numPoints; ++j, i += 16) points[j] = [record.readDoubleLE(i), record.readDoubleLE(i + 8)];
     return {
       shapeType: shapeType,
       box: box,
@@ -91,9 +92,10 @@ function readPoly(shapeType) {
 function readMultiPoint(record) {
   var box = [record.readDoubleLE(4), record.readDoubleLE(12), record.readDoubleLE(20), record.readDoubleLE(28)],
       numPoints = record.readInt32LE(36),
+      points = new Array(numPoints),
       i = 40,
-      points = [];
-  while (numPoints-- > 0) points.push([record.readDoubleLE(i), record.readDoubleLE(i + 8)]), i += 16;
+      j;
+  for (j = 0; j < numPoints; ++j, i += 16) points[j] = [record.readDoubleLE(i), record.readDoubleLE(i + 8)];
   return {
     shapeType: 8,
     box: box,

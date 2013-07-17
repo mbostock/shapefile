@@ -43,6 +43,7 @@ function testConversion(name, options) {
       var callback = this.callback, features = [];
       shapefile.readStream("./test/" + name + ".shp", options)
           .on("error", callback)
+          .on("header", function(header) { assert.isObject(header) })
           .on("feature", function(feature) { features.push(feature); })
           .on("error", callback)
           .on("end", function() { callback(null, features); });

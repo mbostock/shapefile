@@ -48,6 +48,7 @@ exports.readStream = function(filename, options) {
     shp.readStream(filename + ".shp")
         .on("header", function(header) {
           convert = convertGeometry[header.shapeType];
+          emitter.emit("header", header)
         })
         .on("record", function(record) {
           readNextProperties(function(error, properties) {

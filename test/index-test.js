@@ -40,19 +40,22 @@ function fixExpectedProperties(feature) {
 function testConversion(name, options) {
   return {
     topic: function() {
-      var callback = this.callback, features = [];
+      var callback = this.callback, features = [], header;
       shapefile.readStream("./test/" + name + ".shp", options)
           .on("error", callback)
-          .on("header", function(header) { assert.isObject(header) })
+          .on("header", function(hdr) { header = hdr })
           .on("feature", function(feature) { features.push(feature); })
           .on("error", callback)
-          .on("end", function() { callback(null, features); });
+          .on("end", function() { callback(features, header); });
     },
-    "has the expected features": function(actual) {
-      var expected = JSON.parse(fs.readFileSync("./test/" + name + ".json", "utf-8")).features;
-      actual.forEach(fixActualProperties);
-      expected.forEach(fixExpectedProperties);
-      assert.deepEqual(actual, expected);
+    "has the expected features": function(actualFeature, actualHeader) {
+      var expectedFeature = JSON.parse(fs.readFileSync("./test/" + name + ".json", "utf-8")).features,
+          expectedHeader = JSON.parse(fs.readFileSync("./test/" + name + "-header.json", "utf-8"));
+
+      actualFeature.forEach(fixActualProperties);
+      expectedFeature.forEach(fixExpectedProperties);
+      assert.deepEqual(actualFeature, expectedFeature);
+      assert.deepEqual(actualHeader, expectedHeader);
     }
   };
 }

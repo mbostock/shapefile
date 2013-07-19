@@ -1,3 +1,5 @@
+process.env.TZ = "America/Los_Angeles";
+
 var vows = require("vows"),
     assert = require("assert");
 

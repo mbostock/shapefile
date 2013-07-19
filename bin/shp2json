@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 
-var shapefile = require("../");
+var shapefile = require("../"),
+    fs = require('fs');
 
-process.stdout.write("{\"type\":\"FeatureCollection\",\"features\":[\n");
-
-var previous;
+var previous,
+    name = process.argv[2].replace('.shp', '');
 
 shapefile.readStream(process.argv[2])
+    .on("header", function(header) {
+      fs.writeFileSync(name + '-header.json', JSON.stringify(header));
+      process.stdout.write("{\"type\":\"FeatureCollection\",\"features\":[\n");
+    })
     .on("feature", function(feature) {
       if (previous) process.stdout.write(",\n");
       process.stdout.write(JSON.stringify(feature));

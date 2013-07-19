@@ -19,8 +19,8 @@ suite.addBatch({
   "A shapefile of multipoints": testConversion("multipoints"),
   "A shapefile of polylines": testConversion("polylines"),
   "A shapefile of polygons": testConversion("polygons"),
-  "A shapefile of null features": testConversion("null"),
-  "ignoring properties": testConversion("ignore-properties", {"ignore-properties": true})
+  "A shapefile of null features": testConversion("null")
+  //"ignoring properties": testConversion("ignore-properties", {"ignore-properties": true})
 });
 
 function fixActualProperties(feature) {

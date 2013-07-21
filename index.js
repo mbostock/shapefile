@@ -50,6 +50,7 @@ exports.readStream = function(filename, options) {
     shp.readStream(filename + ".shp")
         .on("header", function(header) {
           convert = convertGeometry[header.shapeType];
+          emitter.emit("header", convertHeader(header));
         })
         .on("record", function(record) {
           readNextProperties(function(error, properties) {
@@ -157,6 +158,24 @@ function convertMultiPoint(record) {
   return {
     type: "MultiPoint",
     coordinates: record.points
+  };
+}
+
+function convertHeader(header) {
+  var bbox = header.box;
+  delete header.box;
+
+  return {
+    type: "Polygon",
+    bbox: bbox,
+    properties: header,
+    coordinates: [[
+      [bbox[0], bbox[1]],
+      [bbox[0], bbox[3]],
+      [bbox[2], bbox[3]],
+      [bbox[2], bbox[1]],
+      [bbox[0], bbox[1]]
+    ]]
   };
 }
 

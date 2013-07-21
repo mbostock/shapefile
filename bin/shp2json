@@ -24,6 +24,11 @@ var argv = optimist
       describe: "character encoding for reading shapefile properties (.dbf)",
       default: null
     })
+    .options("header", {
+      describe: "print shapefile header as GeoJSON object and exit",
+      type: "boolean",
+      default: false
+    })
     .options("help", {
       describe: "display this helpful message",
       type: "boolean",
@@ -43,6 +48,12 @@ var out = argv.o === "/dev/stdout"
 var previous;
 
 shapefile.readStream(argv._[0], {encoding: argv["property-encoding"], "ignore-properties": !!argv["ignore-properties"]})
+    .on("header", function(header) {
+      if(argv.header) {
+        out.write(JSON.stringify(header) + "\n");
+        process.exit(0);
+      }
+    })
     .on("feature", function(feature) {
       if (previous) out.write(",\n");
       else out.write("{\"type\":\"FeatureCollection\",\"features\":[\n");

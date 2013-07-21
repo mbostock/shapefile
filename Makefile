@@ -36,5 +36,5 @@ test/latin1-property.shp test/latin1-property.dbf: test/latin1-property.json
 	rm -f $@ && ogr2ogr -f 'ESRI Shapefile' $@ $<
 
 test: all
-	./node_modules/vows/bin/vows
+	node_modules/.bin/vows
 	@echo

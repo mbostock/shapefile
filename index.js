@@ -4,6 +4,8 @@ var shp = require("./shp"),
     dbf = require("./dbf"),
     list = require("./list");
 
+exports.version = require("./package.json").version;
+
 exports.readStream = function(filename, options) {
   var emitter = new events.EventEmitter(),
       convert,

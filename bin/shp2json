@@ -24,6 +24,11 @@ var argv = optimist
       describe: "character encoding for reading shapefile properties (.dbf)",
       default: null
     })
+    .options("header", {
+      describe: "print shapefile header as GeoJSON object and exit",
+      type: "boolean",
+      default: false
+    })
     .options("help", {
       describe: "display this helpful message",
       type: "boolean",
@@ -44,8 +49,10 @@ var previous;
 
 shapefile.readStream(argv._[0], {encoding: argv["property-encoding"], "ignore-properties": !!argv["ignore-properties"]})
     .on("header", function(header) {
-      fs.writeFileSync(name + '-header.json', JSON.stringify(header));
-      process.stdout.write("{\"type\":\"FeatureCollection\",\"features\":[\n");
+      if(argv.header) {
+        out.write(JSON.stringify(header) + "\n");
+        process.exit(0);
+      }
     })
     .on("feature", function(feature) {
       if (previous) out.write(",\n");

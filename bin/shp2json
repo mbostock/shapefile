@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-var optimist = require("optimist"),
+var fs = require("fs"),
+    optimist = require("optimist"),
     shapefile = require("../");
 
 var argv = optimist

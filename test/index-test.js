@@ -40,17 +40,18 @@ function fixExpectedProperties(feature) {
 function testConversion(name, options) {
   return {
     topic: function() {
-      var callback = this.callback, features = [];
+      var callback = this.callback, bbox, features = [];
       shapefile.readStream("./test/" + name + ".shp", options)
           .on("error", callback)
+          .on("header", function(header) { bbox = header.bbox; })
           .on("feature", function(feature) { features.push(feature); })
           .on("error", callback)
-          .on("end", function() { callback(null, features); });
+          .on("end", function() { callback(null, {type: "FeatureCollection", bbox: bbox, features: features}); });
     },
     "has the expected features": function(actual) {
-      var expected = JSON.parse(fs.readFileSync("./test/" + name + ".json", "utf-8")).features;
-      actual.forEach(fixActualProperties);
-      expected.forEach(fixExpectedProperties);
+      var expected = JSON.parse(fs.readFileSync("./test/" + name + ".json", "utf-8"));
+      actual.features.forEach(fixActualProperties);
+      expected.features.forEach(fixExpectedProperties);
       assert.deepEqual(actual, expected);
     }
   };

@@ -44,9 +44,13 @@ var out = argv.o === "/dev/stdout"
 var previous;
 
 shapefile.readStream(argv._[0], {encoding: argv["property-encoding"], "ignore-properties": !!argv["ignore-properties"]})
+    .on("header", function(header) {
+      out.write("{\"type\":\"FeatureCollection\",\"bbox\":");
+      out.write(JSON.stringify(header.bbox));
+      out.write(",\"features\":[\n");
+    })
     .on("feature", function(feature) {
       if (previous) out.write(",\n");
-      else out.write("{\"type\":\"FeatureCollection\",\"features\":[\n");
       out.write(JSON.stringify(feature));
       previous = true;
     })

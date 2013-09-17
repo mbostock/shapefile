@@ -13,7 +13,6 @@ exports.read = function(filename) {
 
     function readFileHeader(fileHeader) {
       shapeType = fileHeader.readInt32LE(32);
-      if (!(shapeType in readShape)) throw new Error("unsupported shape type: " + shapeType);
       sink.geometryStart();
       sink.bbox(
         fileHeader.readDoubleLE(36), // x0
@@ -21,7 +20,7 @@ exports.read = function(filename) {
         fileHeader.readDoubleLE(44), // y0
         fileHeader.readDoubleLE(60)  // y1
       );
-      readShapeType = readShape[shapeType];
+      readShapeType = readShape[shapeType] || readNull;
       read(8, readRecordHeader);
     }
 
@@ -44,6 +43,7 @@ exports.read = function(filename) {
 };
 
 var readShape = {
+  0: readNull,
   1: readPoint,
   3: readPolyline, // PolyLine
   5: readPolygon, // Polygon
@@ -58,6 +58,10 @@ var readShape = {
   // 28: TODO readMultiPointM
   // 31: TODO readMultiPatch
 };
+
+function readNull(record, sink) {
+  // noop
+}
 
 function readPoint(record, sink) {
   sink.point(record.readDoubleLE(4), record.readDoubleLE(12));

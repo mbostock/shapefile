@@ -9,7 +9,7 @@ var suite = vows.describe("shp");
 suite.addBatch({
   "A simple shapefile of points": {
     topic: function() {
-      shp("test/boolean-property.shp")(sink(this.callback));
+      shp.read("test/boolean-property.shp")(sink(this.callback));
     },
     "has no properties": function(result) {
       assert.isUndefined(result.properties);

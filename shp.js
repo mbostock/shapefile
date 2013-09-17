@@ -2,7 +2,7 @@ var fs = require("fs");
 
 var reader = require("./reader");
 
-module.exports = function(filename) {
+exports.read = function(filename) {
   return function(sink) {
     var stream = fs.createReadStream(filename),
         read = reader(stream),
@@ -74,9 +74,9 @@ function readPolyline(record, sink) {
     record.readDoubleLE(28)  // y1
   );
 
-  for (var i = 0, j = 0; i < n; ++i, j = k) {
+  for (var i = 0, j = record.readInt32LE(44); i < n; ++i, j = k) {
     sink.lineStart();
-    for (var k = i < n - 1 ? record.readInt32LE(44 + i * 4) : m; j < k; ++j) {
+    for (var k = i < n - 1 ? record.readInt32LE(44 + i * 4 + 4) : m; j < k; ++j) {
       sink.point(
         record.readDoubleLE(44 + n * 4 + j * 16),    // x
         record.readDoubleLE(44 + n * 4 + j * 16 + 8) // y

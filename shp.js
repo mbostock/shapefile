@@ -87,7 +87,6 @@ function readPolyline(record, sink) {
 }
 
 // TODO detect which rings are exteriors and which are interiors
-// TODO i forget whether shapefiles include closing coordinate for rings
 function readPolygon(record, sink) {
   var n = record.readInt32LE(36),
       m = record.readInt32LE(40);

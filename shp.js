@@ -130,13 +130,13 @@ function readPolygon(record, sink) {
 
   // Find all the interior rings, and bind them to an exterior ring.
   for (var i = 0, hole; i < n; ++i) {
-    if (!ringClockwise(hole = rings[i])) {
+    if (!ringClockwise(record, hole = rings[i])) {
       var j = hole[0],
           x = record.readDoubleLE(j),
           y = record.readDoubleLE(j + 8);
       rings[i] = null;
       for (var j = 0, ring; j < n; ++j) {
-        if ((ring = rings[j]) && ringContains(ring, x, y)) {
+        if ((ring = rings[j]) && ringContains(record, ring, x, y)) {
           hole.next = ring.next;
           ring.next = hole;
           break;
@@ -162,46 +162,46 @@ function readPolygon(record, sink) {
       sink.polygonEnd();
     }
   }
+}
 
-  function ringClockwise(ring) {
-    var area = 0,
-        i = ring[0],
-        j = ring[1],
-        x0,
-        y0,
-        x1 = record.readDoubleLE(j - 16),
-        y1 = record.readDoubleLE(j - 8);
+function ringClockwise(record, ring) {
+  var area = 0,
+      i = ring[0],
+      j = ring[1],
+      x0,
+      y0,
+      x1 = record.readDoubleLE(j - 16),
+      y1 = record.readDoubleLE(j - 8);
 
-    while (i < j) {
-      x0 = x1;
-      y0 = y1;
-      x1 = record.readDoubleLE(i);
-      y1 = record.readDoubleLE(i + 8);
-      area += y0 * x1 - x0 * y1;
-      i += 16;
-    }
-
-    return area >= 0;
+  while (i < j) {
+    x0 = x1;
+    y0 = y1;
+    x1 = record.readDoubleLE(i);
+    y1 = record.readDoubleLE(i + 8);
+    area += y0 * x1 - x0 * y1;
+    i += 16;
   }
 
-  function ringContains(ring, x, y) {
-    var contains = false,
-        i = ring[0],
-        j = ring[1],
-        x0,
-        y0,
-        x1 = record.readDoubleLE(j - 16),
-        y1 = record.readDoubleLE(j - 8);
+  return area >= 0;
+}
 
-    while (i < j) {
-      x0 = x1;
-      y0 = y1;
-      x1 = record.readDoubleLE(i);
-      y1 = record.readDoubleLE(i + 8);
-      if (((y0 > y) ^ (y1 > y)) && (x < (x1 - x0) * (y - y0) / (y1 - y0) + x0)) contains = !contains;
-      i += 16;
-    }
+function ringContains(record, ring, x, y) {
+  var contains = false,
+      i = ring[0],
+      j = ring[1],
+      x0,
+      y0,
+      x1 = record.readDoubleLE(j - 16),
+      y1 = record.readDoubleLE(j - 8);
 
-    return contains;
+  while (i < j) {
+    x0 = x1;
+    y0 = y1;
+    x1 = record.readDoubleLE(i);
+    y1 = record.readDoubleLE(i + 8);
+    if (((y0 > y) ^ (y1 > y)) && (x < (x1 - x0) * (y - y0) / (y1 - y0) + x0)) contains = !contains;
+    i += 16;
   }
+
+  return contains;
 }

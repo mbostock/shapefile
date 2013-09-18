@@ -40,9 +40,9 @@ module.exports = function(filename, callback) {
           point = ring[j];
           if (j) write(",");
           write("[");
-          write(JSON.stringify(point[0]));
+          write(point[0] + "");
           write(",");
-          write(JSON.stringify(point[1]));
+          write(point[1] + "");
           write("]");
         }
         write("]");
@@ -57,9 +57,9 @@ module.exports = function(filename, callback) {
         point = firstLine[j];
         if (j) write(",");
         write("[");
-        write(JSON.stringify(point[0]));
+        write(point[0] + "");
         write(",");
-        write(JSON.stringify(point[1]));
+        write(point[1] + "");
         write("]");
       }
       firstLine = null;
@@ -92,13 +92,13 @@ module.exports = function(filename, callback) {
     if (geometry.properties) write("},");
     geometry.bbox = true;
     write("\"bbox\":[");
-    write(JSON.stringify(x0));
+    write(x0 + "");
     write(",");
-    write(JSON.stringify(y0));
+    write(y0 + "");
     write(",");
-    write(JSON.stringify(x1));
+    write(x1 + "");
     write(",");
-    write(JSON.stringify(y1));
+    write(y1 + "");
     write("]");
   }
 
@@ -117,9 +117,9 @@ module.exports = function(filename, callback) {
           point = ring[j];
           if (j) write(",");
           write("[");
-          write(JSON.stringify(point[0]));
+          write(point[0] + "");
           write(",");
-          write(JSON.stringify(point[1]));
+          write(point[1] + "");
           write("]");
         }
         write("]");
@@ -150,9 +150,9 @@ module.exports = function(filename, callback) {
         point = firstLine[j];
         if (j) write(",");
         write("[");
-        write(JSON.stringify(point[0]));
+        write(point[0] + "");
         write(",");
-        write(JSON.stringify(point[1]));
+        write(point[1] + "");
         write("]");
       }
       write("],[");
@@ -177,9 +177,9 @@ module.exports = function(filename, callback) {
     } else {
       if (pointIndex++) write(",");
       write("[");
-      write(JSON.stringify(x));
+      write(x + "");
       write(",");
-      write(JSON.stringify(y));
+      write(y + "");
       write("]");
     }
   }
@@ -223,12 +223,12 @@ var Null = 0,
     GeometryCollection = 7;
 
 var names = [
-  null,
-  "Point",
-  "MultiPoint",
-  "LineString",
-  "MultiLineString",
-  "Polygon",
-  "MultiPolygon",
-  "GeometryCollection"
-].map(JSON.stringify);
+  "null",
+  "\"Point\"",
+  "\"MultiPoint\"",
+  "\"LineString\"",
+  "\"MultiLineString\"",
+  "\"Polygon\"",
+  "\"MultiPolygon\"",
+  "\"GeometryCollection\""
+];

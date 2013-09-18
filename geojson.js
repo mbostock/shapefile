@@ -1,6 +1,112 @@
 var os = require("os"),
     writer = require("./writer");
 
+exports.object = function(callback) {
+  var geometryStack = [],
+      feature,
+      geometry,
+      coordinatesStack = [],
+      coordinates;
+
+  function geometryStart() {
+    geometryStack.push(geometry);
+    if (geometryStack.length === 1) {
+      geometry = {type: "FeatureCollection", features: []};
+    } else if (geometryStack.length === 2) {
+      feature = {type: "Feature", geometry: null};
+      geometry = {type: null};
+    } else {
+      geometry.type = "GeometryCollection";
+      geometry.geometries = [];
+      geometry = {type: null};
+    }
+  }
+
+  function geometryEnd() {
+    if (geometry.type == null) geometry = null;
+    if (geometryStack.length < 2) return void callback(geometry);
+    var collection = geometryStack.pop();
+    if (geometryStack.length === 1) {
+      feature.geometry = geometry;
+      collection.features.push(feature);
+    } else {
+      collection.geometries.push(geometry);
+    }
+    geometry = collection;
+  }
+
+  function property(name, value) {
+    var properties = feature.properties || (feature.properties = {});
+    properties[name] = value;
+  }
+
+  function bbox(x0, x1, y0, y1) {
+    (feature || geometry).bbox = [x0, y0, x1, y1];
+  }
+
+  function polygonStart() {
+    coordinatesStack.push(coordinates);
+    if (!geometry.type) {
+      geometry.type = "Polygon";
+      geometry.coordinates = coordinates = [];
+    } else if (geometry.type === "Polygon") {
+      geometry.type = "MultiPolygon";
+      geometry.coordinates = [geometry.coordinates, coordinates = []];
+    } else { // MultiPolygon
+      geometry.coordinates.push(coordinates = []);
+    }
+  }
+
+  function polygonEnd() {
+    coordinates = coordinatesStack.pop();
+  }
+
+  function lineStart() {
+    coordinatesStack.push(coordinates);
+    if (coordinates) {
+      coordinates.push(coordinates = []);
+    } else if (!geometry.type) {
+      geometry.type = "LineString";
+      geometry.coordinates = coordinates = [];
+    } else if (geometry.type === "LineString") {
+      geometry.type = "MultiLineString";
+      geometry.coordinates = [geometry.coordinates, coordinates = []];
+    } else { // MultiLineString
+      geometry.coordinates.push(coordinates = []);
+    }
+  }
+
+  function lineEnd() {
+    coordinates = coordinatesStack.pop();
+  }
+
+  function point(x, y) {
+    if (coordinates) {
+      coordinates.push([x, y]);
+    } else if (!geometry.type) {
+      geometry.type = "Point";
+      geometry.coordinates = [x, y];
+    } else if (geometry.type === "Point") {
+      geometry.type = "MultiPoint";
+      geometry.coordinates = [geometry.coordinates, [x, y]];
+    } else { // MultiPoint
+      geometry.coordinates.push([x, y]);
+    }
+  }
+
+  return {
+    geometryStart: geometryStart,
+    geometryEnd: geometryEnd,
+    property: property,
+    bbox: bbox,
+    polygonStart: polygonStart,
+    polygonEnd: polygonEnd,
+    lineStart: lineStart,
+    lineEnd: lineEnd,
+    point: point
+  };
+};
+
 exports.write = function(stream, callback) {
   var write = writer(stream),
       stack = [],

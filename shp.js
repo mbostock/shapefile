@@ -70,12 +70,12 @@ function readPoint(record, sink) {
 function readMultiPoint(record, sink) {
   var n = record.readInt32LE(36);
 
-  sink.bbox(
-    record.readDoubleLE(4),  // x0
-    record.readDoubleLE(20), // x1
-    record.readDoubleLE(12), // y0
-    record.readDoubleLE(28)  // y1
-  );
+  // sink.bbox(
+  //   record.readDoubleLE(4),  // x0
+  //   record.readDoubleLE(20), // x1
+  //   record.readDoubleLE(12), // y0
+  //   record.readDoubleLE(28)  // y1
+  // );
 
   for (var i = 0; i < n; ++i) {
     sink.point(
@@ -89,12 +89,12 @@ function readPolyline(record, sink) {
   var n = record.readInt32LE(36),
       m = record.readInt32LE(40);
 
-  sink.bbox(
-    record.readDoubleLE(4),  // x0
-    record.readDoubleLE(20), // x1
-    record.readDoubleLE(12), // y0
-    record.readDoubleLE(28)  // y1
-  );
+  // sink.bbox(
+  //   record.readDoubleLE(4),  // x0
+  //   record.readDoubleLE(20), // x1
+  //   record.readDoubleLE(12), // y0
+  //   record.readDoubleLE(28)  // y1
+  // );
 
   for (var i = 0, j = record.readInt32LE(44); i < n; ++i, j = k) {
     sink.lineStart();
@@ -115,12 +115,12 @@ function readPolygon(record, sink) {
       pointOffset = 44 + (n << 2),
       rings = new Array(m);
 
-  sink.bbox(
-    record.readDoubleLE(4),  // x0
-    record.readDoubleLE(20), // x1
-    record.readDoubleLE(12), // y0
-    record.readDoubleLE(28)  // y1
-  );
+  // sink.bbox(
+  //   record.readDoubleLE(4),  // x0
+  //   record.readDoubleLE(20), // x1
+  //   record.readDoubleLE(12), // y0
+  //   record.readDoubleLE(28)  // y1
+  // );
 
   // Extract the ring indexes.
   for (var i = 0, j = pointOffset + (record.readInt32LE(44) << 4), i0 = n - 1; i < i0; ++i) {

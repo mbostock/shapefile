@@ -1,6 +1,5 @@
-var fs = require("fs");
-
-var reader = require("./reader");
+var fs = require("fs"),
+    reader = require("./reader");
 
 exports.read = function(filename) {
   return function(sink) {
@@ -12,6 +11,7 @@ exports.read = function(filename) {
     read(100, readFileHeader);
 
     function readFileHeader(fileHeader) {
+      if (!fileHeader) return void stream.close();
       shapeType = fileHeader.readInt32LE(32);
       sink.geometryStart();
       sink.bbox(

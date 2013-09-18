@@ -109,7 +109,6 @@ function readPolyline(record, sink) {
   }
 }
 
-// TODO detect which rings are exteriors and which are interiors
 function readPolygon(record, sink) {
   var n = record.readInt32LE(36),
       m = record.readInt32LE(40),

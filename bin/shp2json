@@ -3,4 +3,4 @@
 var shp = require("../shp"),
     geojson = require("../geojson");
 
-shp.read(process.argv[2])(geojson("/dev/stdout"));
+shp.read(process.argv[2])(geojson.write("/dev/stdout"));

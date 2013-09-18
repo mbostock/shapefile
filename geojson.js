@@ -1,7 +1,7 @@
 var fs = require("fs"),
     os = require("os");
 
-module.exports = function(filename, callback) {
+exports.write = function(filename, callback) {
   var stream = fs.createWriteStream(filename, "utf8"),
       bufferSize = 16 * 1024,
       bufferIndex = 0,
@@ -72,6 +72,7 @@ module.exports = function(filename, callback) {
 
     geometry = stack.pop();
     if (!geometry) {
+      write(os.EOL);
       flush();
       if (callback) callback(null);
     }

@@ -2,20 +2,20 @@
 
 var shp = require("../shp");
 
-read(process.argv[2] || "/dev/stdin", function(error) {
+var depth = 0;
 
+shp.read(process.argv[2] || "/dev/stdin")({
+  geometryStart: function() { log("geometryStart"); ++depth; },
+  geometryEnd: function() { --depth; log("geometryEnd"); },
+  bbox: function(x0, x1, y0, y1) { log("bbox", x0, x1, y0, y1); },
+  polygonStart: function() { log("polygonStart"); ++depth; },
+  polygonEnd: function() { --depth; log("polygonEnd"); },
+  lineStart: function() { log("lineStart"); ++depth; },
+  lineEnd: function() { --depth; log("lineEnd"); },
+  point: function(x, y) { log("point", x, y); }
 });
 
-function read(filename, callback) {
-  var depth = 0;
-  shp.read(filename)({
-    geometryStart: function() { ++depth; process.stdout.write("."); },
-    geometryEnd: function() { if (!--depth) callback(null); },
-    bbox: function(x0, x1, y0, y1) {},
-    polygonStart: function() {},
-    polygonEnd: function() {},
-    lineStart: function() {},
-    lineEnd: function() {},
-    point: function(x, y) {}
-  });
+function log(name) {
+  name = new Array(depth + 1).join("  ") + name;
+  console.log.apply(this, arguments);
 }

@@ -67,6 +67,24 @@ function readPoint(record, sink) {
   sink.point(record.readDoubleLE(4), record.readDoubleLE(12));
 }
 
+function readMultiPoint(record, sink) {
+  var n = record.readInt32LE(36);
+
+  sink.bbox(
+    record.readDoubleLE(4),  // x0
+    record.readDoubleLE(20), // x1
+    record.readDoubleLE(12), // y0
+    record.readDoubleLE(28)  // y1
+  );
+
+  for (var i = 0; i < n; ++i) {
+    sink.point(
+      record.readDoubleLE(40 + i * 16),    // x
+      record.readDoubleLE(40 + i * 16 + 8) // y
+    );
+  }
+}
+
 function readPolyline(record, sink) {
   var n = record.readInt32LE(36),
       m = record.readInt32LE(40);
@@ -93,7 +111,9 @@ function readPolyline(record, sink) {
 // TODO detect which rings are exteriors and which are interiors
 function readPolygon(record, sink) {
   var n = record.readInt32LE(36),
-      m = record.readInt32LE(40);
+      m = record.readInt32LE(40),
+      pointOffset = 44 + (n << 2),
+      rings = new Array(m);
 
   sink.bbox(
     record.readDoubleLE(4),  // x0
@@ -102,34 +122,85 @@ function readPolygon(record, sink) {
     record.readDoubleLE(28)  // y1
   );
 
-  for (var i = 0, j = 0; i < n; ++i, j = k + 1) {
-    sink.polygonStart();
-    sink.lineStart();
-    for (var k = (i < n - 1 ? record.readInt32LE(44 + i * 4) : m) - 1; j < k; ++j) {
-      sink.point(
-        record.readDoubleLE(44 + n * 4 + j * 16),    // x
-        record.readDoubleLE(44 + n * 4 + j * 16 + 8) // y
-      );
-    }
-    sink.lineEnd();
-    sink.polygonEnd();
+  // Extract the ring indexes.
+  for (var i = 0, j = pointOffset + (record.readInt32LE(44) << 4), i0 = n - 1; i < i0; ++i) {
+    rings[i] = {0: j, 1: j = pointOffset + (record.readInt32LE(48 + (i << 2)) << 4)};
   }
-}
+  rings[i0] = {0: j, 1: pointOffset + (m << 4)};
 
-function readMultiPoint(record, sink) {
-  var n = record.readInt32LE(36);
+  // Find all the interior rings, and bind them to an exterior ring.
+  for (var i = 0, l = rings.length, hole; i < n; ++i) {
+    if (!ringClockwise(hole = rings[i])) {
+      var x = record.readDoubleLE(hole[0]),
+          y = record.readDoubleLE(hole[0] + 8);
+      rings[i] = null;
+      for (var j = 0, ring; j < n; ++j) {
+        if ((ring = rings[j]) && ringContains(ring, x, y)) {
+          hole.next = ring.next;
+          ring.next = hole;
+          break;
+        }
+      }
+    }
+  }
 
-  sink.bbox(
-    record.readDoubleLE(4),  // x0
-    record.readDoubleLE(20), // x1
-    record.readDoubleLE(12), // y0
-    record.readDoubleLE(28)  // y1
-  );
+  // Output all the rings, grouping interior rings by exterior ring.
+  for (var i = 0, ring; i < n; ++i) {
+    if (ring = rings[i]) {
+      sink.polygonStart();
+      do {
+        sink.lineStart();
+        for (var j = ring[0], k = ring[1]; j < k; j += 16) {
+          sink.point(
+            record.readDoubleLE(j),    // x
+            record.readDoubleLE(j + 8) // y
+          );
+        }
+        sink.lineEnd();
+      } while (ring = ring.next);
+      sink.polygonEnd();
+    }
+  }
 
-  for (var i = 0; i < n; ++i) {
-    sink.point(
-      record.readDoubleLE(40 + i * 16),    // x
-      record.readDoubleLE(40 + i * 16 + 8) // y
-    );
+  function ringClockwise(ring) {
+    var area = 0,
+        i = ring[0],
+        j = ring[1],
+        x0,
+        y0,
+        x1 = record.readDoubleLE(j - 16),
+        y1 = record.readDoubleLE(j - 8);
+
+    while (i < j) {
+      x0 = x1;
+      y0 = y1;
+      x1 = record.readDoubleLE(i);
+      y1 = record.readDoubleLE(i + 8);
+      area += y0 * x1 - x0 * y1;
+      i += 16;
+    }
+
+    return area >= 0;
+  }
+
+  function ringContains(ring, x, y) {
+    var contains = false,
+        i = ring[0],
+        j = ring[1],
+        x0,
+        y0,
+        x1 = record.readDoubleLE(j - 16),
+        y1 = record.readDoubleLE(j - 8);
+
+    while (i < j) {
+      x0 = x1;
+      y0 = y1;
+      x1 = record.readDoubleLE(i);
+      y1 = record.readDoubleLE(i + 8);
+      if (((y0 > y) ^ (y1 > y)) && (x < (x1 - x0) * (y - y0) / (y1 - y0) + x0)) contains = !contains;
+      i += 16;
+    }
+
+    return contains;
   }
 }

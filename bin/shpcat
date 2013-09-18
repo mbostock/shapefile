@@ -16,7 +16,7 @@ var argv = optimist
     .options("o", {
       alias: "out",
       describe: "output file name",
-      default: "/dev/stdout",
+      default: "-",
     })
     .options("help", {
       describe: "display this helpful message",
@@ -33,7 +33,7 @@ if (argv.help) return optimist.showHelp();
 
 var depth = 0,
     input = !argv._[0] || argv._[0] === "-" ? process.stdin : fs.createReadStream(argv._[0]),
-    output = fs.createWriteStream(argv.o);
+    output = argv.o === "-" ? process.stdout : fs.createWriteStream(argv.o);
 
 shp.read(input, {
   geometryStart: function() { log("geometryStart"); ++depth; },

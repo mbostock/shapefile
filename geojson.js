@@ -3,10 +3,29 @@ var fs = require("fs"),
 
 module.exports = function(filename, callback) {
   var stream = fs.createWriteStream(filename, "utf8"),
+      bufferSize = 16 * 1024,
+      bufferIndex = 0,
+      buffer = new Buffer(bufferSize),
       stack = [],
       geometry,
       polygon,
       line;
+
+  function write(chunk) {
+    bufferIndex += buffer.write(chunk, bufferIndex);
+    while (Buffer._charsWritten < chunk.length) {
+      flush();
+      bufferIndex = buffer.write(chunk = chunk.substring(Buffer._charsWritten));
+    }
+  }
+
+  function flush() {
+    if (bufferIndex) {
+      stream.write(buffer.slice(0, bufferIndex));
+      buffer = new Buffer(bufferSize);
+      bufferIndex = 0;
+    }
+  }
 
   return {
     geometryStart: function() {
@@ -14,62 +33,60 @@ module.exports = function(filename, callback) {
         stack.push(geometry);
         if (geometry.type === Null) {
           geometry.type = GeometryCollection;
-          if (geometry.properties || geometry.bbox) stream.write(",");
-          stream.write("\"geometries\":[");
-          stream.write(os.EOL);
+          if (geometry.properties || geometry.bbox) write(",");
+          write("\"geometries\":[");
         } else {
-          stream.write(",");
+          write(",");
         }
       }
       geometry = {type: Null};
-      stream.write("{");
+      write("{");
     },
     geometryEnd: function() {
 
       if (line) {
-        if (geometry.properties || geometry.bbox) stream.write(",");
-        stream.write("\"coordinates\":[");
+        if (geometry.properties || geometry.bbox) write(",");
+        write("\"coordinates\":[");
         for (var j = 0, m = line.length, point; j < m; ++j) {
           point = line[j];
-          if (j) stream.write(",");
-          stream.write("[");
-          stream.write(JSON.stringify(point[0]));
-          stream.write(",");
-          stream.write(JSON.stringify(point[1]));
-          stream.write("]");
+          if (j) write(",");
+          write("[");
+          write(JSON.stringify(point[0]));
+          write(",");
+          write(JSON.stringify(point[1]));
+          write("]");
         }
         line = null;
       }
 
-      if (geometry.type) stream.write("]"); // close coordinates or geometries
-      if (geometry.type || geometry.properties) stream.write(",");
-      stream.write("\"type\":");
-      stream.write(names[geometry.type]);
-      stream.write("}");
-      stream.write(os.EOL);
+      if (geometry.type) write("]"); // close coordinates or geometries
+      if (geometry.type || geometry.properties) write(",");
+      write("\"type\":");
+      write(names[geometry.type]);
+      write("}");
       geometry = stack.pop();
       if (!geometry && callback) callback(null);
     },
     property: function(name, value) {
-      if (!geometry.properties) stream.write("\"properties\":{"), geometry.properties = true;
-      else stream.write(",");
-      stream.write("\"");
-      stream.write(JSON.stringify(name));
-      stream.write("\":");
-      stream.write(JSON.stringify(value));
+      if (!geometry.properties) write("\"properties\":{"), geometry.properties = true;
+      else write(",");
+      write("\"");
+      write(JSON.stringify(name));
+      write("\":");
+      write(JSON.stringify(value));
     },
     bbox: function(x0, x1, y0, y1) {
-      if (geometry.properties) stream.write(",");
+      if (geometry.properties) write(",");
       geometry.bbox = true;
-      stream.write("\"bbox\":[");
-      stream.write(JSON.stringify(x0));
-      stream.write(",");
-      stream.write(JSON.stringify(y0));
-      stream.write(",");
-      stream.write(JSON.stringify(x1));
-      stream.write(",");
-      stream.write(JSON.stringify(y1));
-      stream.write("]");
+      write("\"bbox\":[");
+      write(JSON.stringify(x0));
+      write(",");
+      write(JSON.stringify(y0));
+      write(",");
+      write(JSON.stringify(x1));
+      write(",");
+      write(JSON.stringify(y1));
+      write("]");
     },
     // polygonStart: function() {
     //   if (geometry.type === Null) {
@@ -77,46 +94,46 @@ module.exports = function(filename, callback) {
     //     geometry.type = Polygon;
     //   } else if (geometry.type === Polygon) {
     //     geometry.type = MultiPolygon;
-    //     if (geometry.properties || geometry.bbox) stream.write(",");
-    //     stream.write("\"coordinates\":[[");
+    //     if (geometry.properties || geometry.bbox) write(",");
+    //     write("\"coordinates\":[[");
     //     for (var i = 0, n = polygon.length; i < n; ++i) {
-    //       stream.write("[");
+    //       write("[");
     //       for (var line = polygon[i], j = 0, m = line.length, point; j < m; ++j) {
     //         point = line[j];
-    //         stream.write("[");
-    //         stream.write(JSON.stringify(point[0]));
-    //         stream.write(",");
-    //         stream.write(JSON.stringify(point[1]));
-    //         stream.write("]");
+    //         write("[");
+    //         write(JSON.stringify(point[0]));
+    //         write(",");
+    //         write(JSON.stringify(point[1]));
+    //         write("]");
     //       }
-    //       stream.write("]");
+    //       write("]");
     //     }
-    //     stream.write("],[");
+    //     write("],[");
     //     polygon = null;
     //   } else {
-    //     stream.write(",[");
+    //     write(",[");
     //   }
     // },
     // polygonEnd: function() {
     //   if (polygon) {
-    //     if (geometry.properties || geometry.bbox) stream.write(",");
-    //     stream.write("\"coordinates\":[");
+    //     if (geometry.properties || geometry.bbox) write(",");
+    //     write("\"coordinates\":[");
     //     for (var i = 0, n = polygon.length; i < n; ++i) {
-    //       stream.write("[");
+    //       write("[");
     //       for (var line = polygon[i], j = 0, m = line.length, point; j < m; ++j) {
     //         point = line[j];
-    //         stream.write("[");
-    //         stream.write(JSON.stringify(point[0]));
-    //         stream.write(",");
-    //         stream.write(JSON.stringify(point[1]));
-    //         stream.write("]");
+    //         write("[");
+    //         write(JSON.stringify(point[0]));
+    //         write(",");
+    //         write(JSON.stringify(point[1]));
+    //         write("]");
     //       }
-    //       stream.write("]");
+    //       write("]");
     //     }
-    //     stream.write("]");
+    //     write("]");
     //     polygon = null;
     //   } else {
-    //     stream.write("]");
+    //     write("]");
     //   }
     // },
     lineStart: function() { // TODO polygons
@@ -125,39 +142,39 @@ module.exports = function(filename, callback) {
         line = [];
       } else if (geometry.type === LineString) {
         geometry.type = MultiLineString;
-        if (geometry.properties || geometry.bbox) stream.write(",");
-        stream.write("\"coordinates\":[[");
+        if (geometry.properties || geometry.bbox) write(",");
+        write("\"coordinates\":[[");
         for (var j = 0, m = line.length, point; j < m; ++j) {
           point = line[j];
-          if (j) stream.write(",");
-          stream.write("[");
-          stream.write(JSON.stringify(point[0]));
-          stream.write(",");
-          stream.write(JSON.stringify(point[1]));
-          stream.write("]");
+          if (j) write(",");
+          write("[");
+          write(JSON.stringify(point[0]));
+          write(",");
+          write(JSON.stringify(point[1]));
+          write("]");
         }
-        stream.write("],[");
+        write("],[");
         line = null;
       } else {
-        stream.write(",[");
+        write(",[");
       }
     },
     lineEnd: function() {
       if (!line) {
-        stream.write("]");
+        write("]");
       }
     },
     point: function(x, y) {
       if (line) {
         line.push([x, y]);
       } else {
-        if (geometry.point) stream.write(",");
+        if (geometry.point) write(",");
         else geometry.point = true;
-        stream.write("[");
-        stream.write(JSON.stringify(x));
-        stream.write(",");
-        stream.write(JSON.stringify(y));
-        stream.write("]");
+        write("[");
+        write(JSON.stringify(x));
+        write(",");
+        write(JSON.stringify(y));
+        write("]");
       }
     }
   };

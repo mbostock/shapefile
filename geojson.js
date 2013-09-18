@@ -11,6 +11,167 @@ module.exports = function(filename, callback) {
       polygon,
       line;
 
+  function geometryStart() {
+    if (geometry) {
+      stack.push(geometry);
+      if (geometry.type === Null) {
+        geometry.type = GeometryCollection;
+        if (geometry.properties || geometry.bbox) write(",");
+        write("\"geometries\":[");
+      } else {
+        write(",");
+      }
+    }
+    geometry = {type: Null};
+    write("{");
+  }
+
+  function geometryEnd() {
+
+    if (line) {
+      if (geometry.properties || geometry.bbox) write(",");
+      write("\"coordinates\":[");
+      for (var j = 0, m = line.length, point; j < m; ++j) {
+        point = line[j];
+        if (j) write(",");
+        write("[");
+        write(JSON.stringify(point[0]));
+        write(",");
+        write(JSON.stringify(point[1]));
+        write("]");
+      }
+      line = null;
+    }
+
+    if (geometry.type) write("]"); // close coordinates or geometries
+    if (geometry.type || geometry.properties) write(",");
+    write("\"type\":");
+    write(names[geometry.type]);
+    write("}");
+
+    geometry = stack.pop();
+    if (!geometry) {
+      flush();
+      if (callback) callback(null);
+    }
+  }
+
+  function property(name, value) {
+    if (!geometry.properties) write("\"properties\":{"), geometry.properties = true;
+    else write(",");
+    write(JSON.stringify(name));
+    write(":");
+    write(JSON.stringify(value));
+  }
+
+  function bbox(x0, x1, y0, y1) {
+    if (geometry.properties) write("},");
+    geometry.bbox = true;
+    write("\"bbox\":[");
+    write(JSON.stringify(x0));
+    write(",");
+    write(JSON.stringify(y0));
+    write(",");
+    write(JSON.stringify(x1));
+    write(",");
+    write(JSON.stringify(y1));
+    write("]");
+  }
+
+  // function polygonStart() {
+  //   if (geometry.type === Null) {
+  //     polygon = [];
+  //     geometry.type = Polygon;
+  //   } else if (geometry.type === Polygon) {
+  //     geometry.type = MultiPolygon;
+  //     if (geometry.properties || geometry.bbox) write(",");
+  //     write("\"coordinates\":[[");
+  //     for (var i = 0, n = polygon.length; i < n; ++i) {
+  //       write("[");
+  //       for (var line = polygon[i], j = 0, m = line.length, point; j < m; ++j) {
+  //         point = line[j];
+  //         write("[");
+  //         write(JSON.stringify(point[0]));
+  //         write(",");
+  //         write(JSON.stringify(point[1]));
+  //         write("]");
+  //       }
+  //       write("]");
+  //     }
+  //     write("],[");
+  //     polygon = null;
+  //   } else {
+  //     write(",[");
+  //   }
+  // }
+
+  // function polygonEnd() {
+  //   if (polygon) {
+  //     if (geometry.properties || geometry.bbox) write(",");
+  //     write("\"coordinates\":[");
+  //     for (var i = 0, n = polygon.length; i < n; ++i) {
+  //       write("[");
+  //       for (var line = polygon[i], j = 0, m = line.length, point; j < m; ++j) {
+  //         point = line[j];
+  //         write("[");
+  //         write(JSON.stringify(point[0]));
+  //         write(",");
+  //         write(JSON.stringify(point[1]));
+  //         write("]");
+  //       }
+  //       write("]");
+  //     }
+  //     write("]");
+  //     polygon = null;
+  //   } else {
+  //     write("]");
+  //   }
+  // }
+
+  function lineStart() { // TODO polygons
+    if (geometry.type === Null) {
+      geometry.type = LineString;
+      line = [];
+    } else if (geometry.type === LineString) {
+      geometry.type = MultiLineString;
+      if (geometry.properties || geometry.bbox) write(",");
+      write("\"coordinates\":[[");
+      for (var j = 0, m = line.length, point; j < m; ++j) {
+        point = line[j];
+        if (j) write(",");
+        write("[");
+        write(JSON.stringify(point[0]));
+        write(",");
+        write(JSON.stringify(point[1]));
+        write("]");
+      }
+      write("],[");
+      line = null;
+    } else {
+      write(",[");
+    }
+  }
+
+  function lineEnd() {
+    if (!line) {
+      write("]");
+    }
+  }
+
+  function point(x, y) {
+    if (line) {
+      line.push([x, y]);
+    } else {
+      if (geometry.point) write(",");
+      else geometry.point = true;
+      write("[");
+      write(JSON.stringify(x));
+      write(",");
+      write(JSON.stringify(y));
+      write("]");
+    }
+  }
+
   function write(chunk) {
     bufferIndex += buffer.write(chunk, bufferIndex);
     while (Buffer._charsWritten < chunk.length) {
@@ -28,155 +189,15 @@ module.exports = function(filename, callback) {
   }
 
   return {
-    geometryStart: function() {
-      if (geometry) {
-        stack.push(geometry);
-        if (geometry.type === Null) {
-          geometry.type = GeometryCollection;
-          if (geometry.properties || geometry.bbox) write(",");
-          write("\"geometries\":[");
-        } else {
-          write(",");
-        }
-      }
-      geometry = {type: Null};
-      write("{");
-    },
-    geometryEnd: function() {
-
-      if (line) {
-        if (geometry.properties || geometry.bbox) write(",");
-        write("\"coordinates\":[");
-        for (var j = 0, m = line.length, point; j < m; ++j) {
-          point = line[j];
-          if (j) write(",");
-          write("[");
-          write(JSON.stringify(point[0]));
-          write(",");
-          write(JSON.stringify(point[1]));
-          write("]");
-        }
-        line = null;
-      }
-
-      if (geometry.type) write("]"); // close coordinates or geometries
-      if (geometry.type || geometry.properties) write(",");
-      write("\"type\":");
-      write(names[geometry.type]);
-      write("}");
-      geometry = stack.pop();
-      if (!geometry && callback) callback(null);
-    },
-    property: function(name, value) {
-      if (!geometry.properties) write("\"properties\":{"), geometry.properties = true;
-      else write(",");
-      write("\"");
-      write(JSON.stringify(name));
-      write("\":");
-      write(JSON.stringify(value));
-    },
-    bbox: function(x0, x1, y0, y1) {
-      if (geometry.properties) write(",");
-      geometry.bbox = true;
-      write("\"bbox\":[");
-      write(JSON.stringify(x0));
-      write(",");
-      write(JSON.stringify(y0));
-      write(",");
-      write(JSON.stringify(x1));
-      write(",");
-      write(JSON.stringify(y1));
-      write("]");
-    },
-    // polygonStart: function() {
-    //   if (geometry.type === Null) {
-    //     polygon = [];
-    //     geometry.type = Polygon;
-    //   } else if (geometry.type === Polygon) {
-    //     geometry.type = MultiPolygon;
-    //     if (geometry.properties || geometry.bbox) write(",");
-    //     write("\"coordinates\":[[");
-    //     for (var i = 0, n = polygon.length; i < n; ++i) {
-    //       write("[");
-    //       for (var line = polygon[i], j = 0, m = line.length, point; j < m; ++j) {
-    //         point = line[j];
-    //         write("[");
-    //         write(JSON.stringify(point[0]));
-    //         write(",");
-    //         write(JSON.stringify(point[1]));
-    //         write("]");
-    //       }
-    //       write("]");
-    //     }
-    //     write("],[");
-    //     polygon = null;
-    //   } else {
-    //     write(",[");
-    //   }
-    // },
-    // polygonEnd: function() {
-    //   if (polygon) {
-    //     if (geometry.properties || geometry.bbox) write(",");
-    //     write("\"coordinates\":[");
-    //     for (var i = 0, n = polygon.length; i < n; ++i) {
-    //       write("[");
-    //       for (var line = polygon[i], j = 0, m = line.length, point; j < m; ++j) {
-    //         point = line[j];
-    //         write("[");
-    //         write(JSON.stringify(point[0]));
-    //         write(",");
-    //         write(JSON.stringify(point[1]));
-    //         write("]");
-    //       }
-    //       write("]");
-    //     }
-    //     write("]");
-    //     polygon = null;
-    //   } else {
-    //     write("]");
-    //   }
-    // },
-    lineStart: function() { // TODO polygons
-      if (geometry.type === Null) {
-        geometry.type = LineString;
-        line = [];
-      } else if (geometry.type === LineString) {
-        geometry.type = MultiLineString;
-        if (geometry.properties || geometry.bbox) write(",");
-        write("\"coordinates\":[[");
-        for (var j = 0, m = line.length, point; j < m; ++j) {
-          point = line[j];
-          if (j) write(",");
-          write("[");
-          write(JSON.stringify(point[0]));
-          write(",");
-          write(JSON.stringify(point[1]));
-          write("]");
-        }
-        write("],[");
-        line = null;
-      } else {
-        write(",[");
-      }
-    },
-    lineEnd: function() {
-      if (!line) {
-        write("]");
-      }
-    },
-    point: function(x, y) {
-      if (line) {
-        line.push([x, y]);
-      } else {
-        if (geometry.point) write(",");
-        else geometry.point = true;
-        write("[");
-        write(JSON.stringify(x));
-        write(",");
-        write(JSON.stringify(y));
-        write("]");
-      }
-    }
+    geometryStart: geometryStart,
+    geometryEnd: geometryEnd,
+    property: property,
+    bbox: bbox,
+    // polygonStart: polygonStart,
+    // polygonEnd: polygonEnd,
+    lineStart: lineStart,
+    lineEnd: lineEnd,
+    point: point
   };
 };
 

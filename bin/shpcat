@@ -7,6 +7,7 @@ var depth = 0;
 shp.read(process.argv[2] || "/dev/stdin")({
   geometryStart: function() { log("geometryStart"); ++depth; },
   geometryEnd: function() { --depth; log("geometryEnd"); },
+  property: function(name, value) { log("property", name, value); },
   bbox: function(x0, x1, y0, y1) { log("bbox", x0, x1, y0, y1); },
   polygonStart: function() { log("polygonStart"); ++depth; },
   polygonEnd: function() { --depth; log("polygonEnd"); },

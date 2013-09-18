@@ -1,6 +1,41 @@
 #!/usr/bin/env node
 
-var shp = require("../shp"),
+var optimist = require("optimist"),
+    shapefile = require("../"),
     geojson = require("../geojson");
 
-shp.read(process.argv[2])(geojson.write("/dev/stdout"));
+var argv = optimist
+    .usage("Usage: \033[1mshp2json\033[0m [options] [file]\n\n"
+
++ "Version: " + shapefile.version + "\n\n"
+
++ "Reads the specified shp (and dbf) file, and outputs it as GeoJSON.")
+
+    .options("o", {
+      alias: "out",
+      describe: "output GeoJSON file name",
+      default: "/dev/stdout",
+    })
+    // .options("ignore-properties", {
+    //   describe: "skip reading shapefile properties (.dbf) for faster performance",
+    //   type: "boolean",
+    //   default: false
+    // })
+    .options("property-encoding", {
+      describe: "character encoding for reading shapefile properties (.dbf)",
+      default: null
+    })
+    .options("help", {
+      describe: "display this helpful message",
+      type: "boolean",
+      default: false
+    })
+    .check(function(argv) {
+      if (argv.help) return;
+      if (argv._.length > 1) throw new Error("zero or one input required");
+    })
+    .argv;
+
+if (argv.help) return optimist.showHelp();
+
+shapefile.read(argv._[0], argv["property-encoding"], geojson.write(argv.o));

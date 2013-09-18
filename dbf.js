@@ -1,60 +1,66 @@
-var fs = require("fs"),
-    iconv = require("iconv-lite"),
+var iconv = require("iconv-lite"),
     reader = require("./reader");
 
-exports.read = function(filename, encoding) {
-  return function(sink) {
-    var stream = fs.createReadStream(filename),
-        read = reader(stream),
-        decode = utf8.test(encoding) ? decodeUtf8 : decoder(encoding || "ISO-8859-1"),
-        fileType,
-        fileDate,
-        fieldDescriptors = [],
-        recordCount,
-        recordBytes;
+exports.read = function(stream, encoding, sink) {
+  var read = reader(stream),
+      decode = utf8.test(encoding) ? decodeUtf8 : decoder(encoding || "ISO-8859-1"),
+      fileType,
+      fileDate,
+      fieldDescriptors = [],
+      recordCount,
+      recordBytes,
+      started = false,
+      paused = false;
 
-    read(32, readFileHeader);
+  sink.pause = function() { paused = true; };
+  sink.resume = function() { paused = false; if (started) readNextRecord(); };
 
-    function readFileHeader(fileHeader) {
-      if (!fileHeader) return void stream.close();
-      fileType = fileHeader.readUInt8(0); // TODO verify 3
-      fileDate = new Date(1900 + fileHeader.readUInt8(1), fileHeader.readUInt8(2) - 1, fileHeader.readUInt8(3));
-      recordCount = fileHeader.readUInt32LE(4);
-      recordBytes = fileHeader.readUInt16LE(10);
-      read(fileHeader.readUInt16LE(8) - 32, readFields);
-    }
+  read(32, readFileHeader);
 
-    function readFields(fields) {
-      if (!fields) return void stream.close();
-      var n = 0;
-      while (fields.readUInt8(n) != 0x0d) {
-        fieldDescriptors.push({
-          name: fieldName(decode(fields, n, n + 11)),
-          type: fields.toString("ascii", n + 11, n + 12),
-          length: fields.readUInt8(n + 16)
-        });
-        n += 32;
-      }
-      sink.geometryStart();
-      read(recordBytes, readRecord);
-    }
+  function readFileHeader(fileHeader) {
+    if (!fileHeader) return void stream.close();
+    fileType = fileHeader.readUInt8(0); // TODO verify 3
+    fileDate = new Date(1900 + fileHeader.readUInt8(1), fileHeader.readUInt8(2) - 1, fileHeader.readUInt8(3));
+    recordCount = fileHeader.readUInt32LE(4);
+    recordBytes = fileHeader.readUInt16LE(10);
+    read(fileHeader.readUInt16LE(8) - 32, readFields);
+  }
 
-    function readRecord(record) {
-      if (!record) return void close();
-      var i = 1;
-      sink.geometryStart();
-      fieldDescriptors.forEach(function(field) {
-        sink.property(field.name, fieldTypes[field.type](decode(record, i, i += field.length)));
+  function readFields(fields) {
+    if (!fields) return void stream.close();
+    var n = 0;
+    while (fields.readUInt8(n) != 0x0d) {
+      fieldDescriptors.push({
+        name: fieldName(decode(fields, n, n + 11)),
+        type: fields.toString("ascii", n + 11, n + 12),
+        length: fields.readUInt8(n + 16)
       });
-      sink.geometryEnd();
-      read(recordBytes, readRecord);
+      n += 32;
     }
+    started = true;
+    sink.geometryStart();
+    if (!paused) readNextRecord();
+  }
 
-    function close() {
-      sink.geometryEnd();
-      stream.close();
-    }
-  };
+  function readNextRecord() {
+    read(recordBytes, readRecord);
+  }
+
+  function readRecord(record) {
+    if (!record) return void close();
+    var i = 1;
+    sink.geometryStart();
+    fieldDescriptors.forEach(function(field) {
+      sink.property(field.name, fieldTypes[field.type](decode(record, i, i += field.length)));
+    });
+    sink.geometryEnd();
+    if (!paused) readNextRecord();
+  }
+
+  function close() {
+    sink.geometryEnd();
+    stream.close();
+  }
 };
 
 var utf8 = /^utf[-]?8$/i;

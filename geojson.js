@@ -32,7 +32,8 @@ exports.write = function(filename, callback) {
   function geometryEnd() {
 
     if (firstPolygon) {
-      if (geometry.properties || geometry.bbox) write(",");
+      if (geometry.bbox) write(",");
+      else if (geometry.properties) write("},");
       write("\"coordinates\":[");
       for (var i = 0, n = firstPolygon.length; i < n; ++i) {
         if (i) write(",");
@@ -48,7 +49,8 @@ exports.write = function(filename, callback) {
     }
 
     else if (firstLine) {
-      if (geometry.properties || geometry.bbox) write(",");
+      if (geometry.bbox) write(",");
+      else if (geometry.properties) write("},");
       write("\"coordinates\":[");
       for (var j = 0, m = firstLine.length, point; j < m; ++j) {
         point = firstLine[j];
@@ -59,7 +61,8 @@ exports.write = function(filename, callback) {
     }
 
     else if (firstPoint) {
-      if (geometry.properties || geometry.bbox) write(",");
+      if (geometry.bbox) write(",");
+      else if (geometry.properties) write("},");
       write("\"coordinates\":[" + firstPoint[0] + "," + firstPoint[1]);
       firstPoint = null;
     }
@@ -96,7 +99,8 @@ exports.write = function(filename, callback) {
       firstPolygon = [];
     } else if (geometry.type === Polygon) {
       geometry.type = MultiPolygon;
-      if (geometry.properties || geometry.bbox) write(",");
+      if (geometry.bbox) write(",");
+      else if (geometry.properties) write("},");
       write("\"coordinates\":[[");
       for (var i = 0, n = firstPolygon.length; i < n; ++i) {
         if (i) write(",");
@@ -128,7 +132,8 @@ exports.write = function(filename, callback) {
       firstLine = [];
     } else if (geometry.type === LineString) {
       geometry.type = MultiLineString;
-      if (geometry.properties || geometry.bbox) write(",");
+      if (geometry.bbox) write(",");
+      else if (geometry.properties) write("},");
       write("\"coordinates\":[[");
       for (var j = 0, m = firstLine.length, point; j < m; ++j) {
         point = firstLine[j];
@@ -157,7 +162,8 @@ exports.write = function(filename, callback) {
       firstPoint = [x, y];
     } else if (geometry.type === Point) {
       geometry.type = MultiPoint;
-      if (geometry.properties || geometry.bbox) write(",");
+      if (geometry.bbox) write(",");
+      else if (geometry.properties) write("},");
       write("\"coordinates\":[[" + firstPoint[0] + "," + firstPoint[1] + "],");
       firstPoint = null;
     } else if (firstLine) {

@@ -1,45 +1,51 @@
-var fs = require("fs"),
-    reader = require("./reader");
+var reader = require("./reader");
 
-exports.read = function(filename) {
-  return function(sink) {
-    var stream = fs.createReadStream(filename),
-        read = reader(stream),
-        shapeType,
-        readShapeType;
+exports.read = function(stream, sink) {
+  var read = reader(stream),
+      shapeType,
+      readShapeType,
+      started = false,
+      paused = false;
 
-    read(100, readFileHeader);
+  sink.pause = function() { paused = true; };
+  sink.resume = function() { paused = false; if (started) readNextRecord(); };
 
-    function readFileHeader(fileHeader) {
-      if (!fileHeader) return void stream.close();
-      shapeType = fileHeader.readInt32LE(32);
+  read(100, readFileHeader);
+
+  function readFileHeader(fileHeader) {
+    if (!fileHeader) return void stream.close();
+    shapeType = fileHeader.readInt32LE(32);
+    started = true;
+    sink.geometryStart();
+    sink.bbox(
+      fileHeader.readDoubleLE(36), // x0
+      fileHeader.readDoubleLE(52), // x1
+      fileHeader.readDoubleLE(44), // y0
+      fileHeader.readDoubleLE(60)  // y1
+    );
+    readShapeType = readShape[shapeType] || readNull;
+    if (!paused) readNextRecord();
+  }
+
+  function readNextRecord() {
+    read(8, readRecordHeader);
+  }
+
+  function readRecordHeader(recordHeader) {
+    if (!recordHeader) return void close();
+    read(recordHeader.readInt32BE(4) * 2, function readRecord(record) {
+      if (!record) return void close();
       sink.geometryStart();
-      sink.bbox(
-        fileHeader.readDoubleLE(36), // x0
-        fileHeader.readDoubleLE(52), // x1
-        fileHeader.readDoubleLE(44), // y0
-        fileHeader.readDoubleLE(60)  // y1
-      );
-      readShapeType = readShape[shapeType] || readNull;
-      read(8, readRecordHeader);
-    }
-
-    function readRecordHeader(recordHeader) {
-      if (!recordHeader) return void close();
-      read(recordHeader.readInt32BE(4) * 2, function readRecord(record) {
-        if (!record) return void close();
-        sink.geometryStart();
-        if (record.readInt32LE(0)) readShapeType(record, sink);
-        sink.geometryEnd();
-        read(8, readRecordHeader);
-      });
-    }
-
-    function close() {
+      if (record.readInt32LE(0)) readShapeType(record, sink);
       sink.geometryEnd();
-      stream.close();
-    }
-  };
+      if (!paused) readNextRecord();
+    });
+  }
+
+  function close() {
+    sink.geometryEnd();
+    stream.close();
+  }
 };
 
 var readShape = {

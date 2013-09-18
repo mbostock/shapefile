@@ -18,8 +18,8 @@ var argv = optimist
       describe: "output file name",
       default: "/dev/stdout",
     })
-    .options("encoding", {
-      describe: "input file character encoding",
+    .options("property-encoding", {
+      describe: "character encoding for reading shapefile properties (.dbf)",
       default: null
     })
     .options("help", {
@@ -38,7 +38,7 @@ if (argv.help) return optimist.showHelp();
 var depth = 0,
     out = fs.createWriteStream(argv.o);
 
-dbf.read(argv._[0] || "/dev/stdin", argv.encoding)({
+dbf.read(argv._[0] ? fs.createReadStream(argv._[0]) : process.stdin, argv["property-encoding"], {
   geometryStart: function() { log("geometryStart"); ++depth; },
   geometryEnd: function() { --depth; log("geometryEnd"); },
   property: function(name, value) { log("property", name, value); }

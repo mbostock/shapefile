@@ -44,7 +44,7 @@ exports.read = function(stream, sink) {
 
   function close() {
     sink.geometryEnd();
-    stream.close();
+    if (stream.close) stream.close();
   }
 };
 

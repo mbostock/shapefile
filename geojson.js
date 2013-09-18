@@ -1,11 +1,8 @@
-var fs = require("fs"),
-    os = require("os");
+var os = require("os"),
+    writer = require("./writer");
 
-exports.write = function(filename, callback) {
-  var stream = fs.createWriteStream(filename, "utf8"),
-      bufferSize = 16 * 1024,
-      bufferIndex = 0,
-      buffer = new Buffer(bufferSize),
+exports.write = function(stream, callback) {
+  var write = writer(stream),
       stack = [],
       geometry,
       firstPolygon, // within the first polygon of a possible MultiPolygon?
@@ -76,7 +73,7 @@ exports.write = function(filename, callback) {
     geometry = stack.pop();
     if (!geometry) {
       write(os.EOL);
-      flush();
+      write(null);
       if (callback) callback(null);
     }
   }
@@ -171,22 +168,6 @@ exports.write = function(filename, callback) {
     } else {
       if (pointIndex++) write(",");
       write("[" + x + "," + y + "]");
-    }
-  }
-
-  function write(chunk) {
-    bufferIndex += buffer.write(chunk, bufferIndex);
-    while (Buffer._charsWritten < chunk.length) {
-      flush();
-      bufferIndex = buffer.write(chunk = chunk.substring(Buffer._charsWritten));
-    }
-  }
-
-  function flush() {
-    if (bufferIndex) {
-      stream.write(buffer.slice(0, bufferIndex));
-      buffer = new Buffer(bufferSize);
-      bufferIndex = 0;
     }
   }
 

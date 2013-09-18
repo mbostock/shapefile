@@ -59,7 +59,7 @@ exports.read = function(stream, encoding, sink) {
 
   function close() {
     sink.geometryEnd();
-    stream.close();
+    if (stream.close) stream.close();
   }
 };
 

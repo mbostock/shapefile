@@ -39,11 +39,7 @@ module.exports = function(filename, callback) {
         for (var ring = firstPolygon[i], j = 0, m = ring.length, point; j < m; ++j) {
           point = ring[j];
           if (j) write(",");
-          write("[");
-          write(point[0] + "");
-          write(",");
-          write(point[1] + "");
-          write("]");
+          write("[" + point[0] + "," + point[1] + "]");
         }
         write("]");
       }
@@ -56,11 +52,7 @@ module.exports = function(filename, callback) {
       for (var j = 0, m = firstLine.length, point; j < m; ++j) {
         point = firstLine[j];
         if (j) write(",");
-        write("[");
-        write(point[0] + "");
-        write(",");
-        write(point[1] + "");
-        write("]");
+        write("[" + point[0] + "," + point[1] + "]");
       }
       firstLine = null;
     }
@@ -69,9 +61,7 @@ module.exports = function(filename, callback) {
 
     if (geometry.type) write("]"); // close coordinates or geometries
     if (geometry.type || geometry.properties) write(",");
-    write("\"type\":");
-    write(names[geometry.type]);
-    write("}");
+    write("\"type\":" + names[geometry.type] + "}");
 
     geometry = stack.pop();
     if (!geometry) {
@@ -83,23 +73,13 @@ module.exports = function(filename, callback) {
   function property(name, value) {
     if (!geometry.properties) write("\"properties\":{"), geometry.properties = true;
     else write(",");
-    write(JSON.stringify(name));
-    write(":");
-    write(JSON.stringify(value));
+    write(JSON.stringify(name) + ":" + JSON.stringify(value));
   }
 
   function bbox(x0, x1, y0, y1) {
     if (geometry.properties) write("},");
     geometry.bbox = true;
-    write("\"bbox\":[");
-    write(x0 + "");
-    write(",");
-    write(y0 + "");
-    write(",");
-    write(x1 + "");
-    write(",");
-    write(y1 + "");
-    write("]");
+    write("\"bbox\":[" + x0 + "," + y0 + "," + x1 + "," + y1 + "]");
   }
 
   function polygonStart() {
@@ -116,11 +96,7 @@ module.exports = function(filename, callback) {
         for (var ring = firstPolygon[i], j = 0, m = ring.length, point; j < m; ++j) {
           point = ring[j];
           if (j) write(",");
-          write("[");
-          write(point[0] + "");
-          write(",");
-          write(point[1] + "");
-          write("]");
+          write("[" + point[0] + "," + point[1] + "]");
         }
         write("]");
       }
@@ -149,11 +125,7 @@ module.exports = function(filename, callback) {
       for (var j = 0, m = firstLine.length, point; j < m; ++j) {
         point = firstLine[j];
         if (j) write(",");
-        write("[");
-        write(point[0] + "");
-        write(",");
-        write(point[1] + "");
-        write("]");
+        write("[" + point[0] + "," + point[1] + "]");
       }
       write("],[");
       firstLine = null;
@@ -176,11 +148,7 @@ module.exports = function(filename, callback) {
       firstLine.push([x, y]);
     } else {
       if (pointIndex++) write(",");
-      write("[");
-      write(x + "");
-      write(",");
-      write(y + "");
-      write("]");
+      write("[" + x + "," + y + "]");
     }
   }
 

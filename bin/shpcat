@@ -1,8 +1,51 @@
 #!/usr/bin/env node
 
-var shp = require("../shp");
+var fs = require("fs"),
+    os = require("os"),
+    optimist = require("optimist"),
+    shapefile = require("../"),
+    shp = require("../shp");
 
-shp.readStream(process.argv[2] || "/dev/stdin")
-    .on("header", function(header) { console.log("header", header); })
-    .on("record", function(record) { console.log("record", record); })
-    .on("end", function() { console.log("end"); });
+var argv = optimist
+    .usage("Usage: \033[1mshpcat\033[0m [options] [file]\n\n"
+
++ "Version: " + shapefile.version + "\n\n"
+
++ "Reads the specified shp file, displaying its contents.")
+
+    .options("o", {
+      alias: "out",
+      describe: "output file name",
+      default: "-",
+    })
+    .options("help", {
+      describe: "display this helpful message",
+      type: "boolean",
+      default: false
+    })
+    .check(function(argv) {
+      if (argv.help) return;
+      if (argv._.length > 1) throw new Error("zero or one input required");
+    })
+    .argv;
+
+if (argv.help) return optimist.showHelp();
+
+var depth = 0,
+    input = !argv._[0] || argv._[0] === "-" ? process.stdin : fs.createReadStream(argv._[0]),
+    output = argv.o === "-" ? process.stdout : fs.createWriteStream(argv.o);
+
+shp.read(input, {
+  geometryStart: function() { log("geometryStart"); ++depth; },
+  geometryEnd: function() { --depth; log("geometryEnd"); },
+  bbox: function(x0, x1, y0, y1) { log("bbox", x0, x1, y0, y1); },
+  polygonStart: function() { log("polygonStart"); ++depth; },
+  polygonEnd: function() { --depth; log("polygonEnd"); },
+  lineStart: function() { log("lineStart"); ++depth; },
+  lineEnd: function() { --depth; log("lineEnd"); },
+  point: function(x, y) { log("point", x, y); }
+});
+
+function log(name) {
+  output.write(new Array(depth + 1).join("  ") + [].join.call(arguments, " ") + os.EOL);
+}

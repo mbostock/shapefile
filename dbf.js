@@ -1,21 +1,24 @@
-var file = require("./file"),
-    iconv = require("iconv-lite");
+var iconv = require("iconv-lite"),
+    reader = require("./reader");
 
-exports.readStream = function(filename, encoding) {
-  var stream = file.readStream(filename),
+exports.read = function(stream, encoding, sink) {
+  var read = reader(stream),
       decode = utf8.test(encoding) ? decodeUtf8 : decoder(encoding || "ISO-8859-1"),
-      read = stream.read,
       fileType,
       fileDate,
       fieldDescriptors = [],
       recordCount,
-      recordBytes;
+      recordBytes,
+      started = false,
+      paused = false;
 
-  delete stream.read;
+  sink.pause = function() { paused = true; };
+  sink.resume = function() { paused = false; if (started) readNextRecord(); };
 
   read(32, readFileHeader);
 
   function readFileHeader(fileHeader) {
+    if (!fileHeader) return void close();
     fileType = fileHeader.readUInt8(0); // TODO verify 3
     fileDate = new Date(1900 + fileHeader.readUInt8(1), fileHeader.readUInt8(2) - 1, fileHeader.readUInt8(3));
     recordCount = fileHeader.readUInt32LE(4);
@@ -24,6 +27,7 @@ exports.readStream = function(filename, encoding) {
   }
 
   function readFields(fields) {
+    if (!fields) return void close();
     var n = 0;
     while (fields.readUInt8(n) != 0x0d) {
       fieldDescriptors.push({
@@ -33,24 +37,30 @@ exports.readStream = function(filename, encoding) {
       });
       n += 32;
     }
-    stream.emit("header", {
-      version: fileType,
-      date: fileDate,
-      count: recordCount,
-      fields: fieldDescriptors
-    });
+    started = true;
+    sink.geometryStart();
+    if (!paused) readNextRecord();
+  }
+
+  function readNextRecord() {
     read(recordBytes, readRecord);
   }
 
   function readRecord(record) {
+    if (!record) return void close();
     var i = 1;
-    stream.emit("record", fieldDescriptors.map(function(field) {
-      return fieldTypes[field.type](decode(record, i, i += field.length));
-    }));
-    read(recordBytes, readRecord);
+    sink.geometryStart();
+    fieldDescriptors.forEach(function(field) {
+      sink.property(field.name, fieldTypes[field.type](decode(record, i, i += field.length)));
+    });
+    sink.geometryEnd();
+    if (!paused) readNextRecord();
   }
 
-  return stream;
+  function close() {
+    if (started) sink.geometryEnd();
+    if (stream.close) stream.close();
+  }
 };
 
 var utf8 = /^utf[-]?8$/i;

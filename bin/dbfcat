@@ -1,8 +1,50 @@
 #!/usr/bin/env node
 
-var dbf = require("../dbf");
+var fs = require("fs"),
+    os = require("os"),
+    optimist = require("optimist"),
+    shapefile = require("../"),
+    dbf = require("../dbf");
 
-dbf.readStream(process.argv[2] || "/dev/stdin")
-    .on("header", function(header) { console.log("header", header); })
-    .on("record", function(record) { console.log("record", record); })
-    .on("end", function() { console.log("end"); });
+var argv = optimist
+    .usage("Usage: \033[1mdbfcat\033[0m [options] [file]\n\n"
+
++ "Version: " + shapefile.version + "\n\n"
+
++ "Reads the specified dbf file, displaying its contents.")
+
+    .options("o", {
+      alias: "out",
+      describe: "output file name",
+      default: "-",
+    })
+    .options("property-encoding", {
+      describe: "character encoding for reading shapefile properties (.dbf)",
+      default: null
+    })
+    .options("help", {
+      describe: "display this helpful message",
+      type: "boolean",
+      default: false
+    })
+    .check(function(argv) {
+      if (argv.help) return;
+      if (argv._.length > 1) throw new Error("zero or one input required");
+    })
+    .argv;
+
+if (argv.help) return optimist.showHelp();
+
+var depth = 0,
+    input = !argv._[0] || argv._[0] === "-" ? process.stdin : fs.createReadStream(argv._[0]),
+    output = argv.o === "-" ? process.stdout : fs.createWriteStream(argv.o);
+
+dbf.read(input, argv["property-encoding"], {
+  geometryStart: function() { log("geometryStart"); ++depth; },
+  geometryEnd: function() { --depth; log("geometryEnd"); },
+  property: function(name, value) { log("property", name, value); }
+});
+
+function log(name) {
+  output.write(new Array(depth + 1).join("  ") + [].join.call(arguments, " ") + os.EOL);
+}

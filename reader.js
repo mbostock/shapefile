@@ -1,11 +1,7 @@
-var fs = require("fs"),
-    events = require("events");
-
 var nextTick = global.setImmediate || process.nextTick;
 
-exports.readStream = function(filename) {
-  var emitter = new events.EventEmitter(),
-      read,
+module.exports = function(stream) {
+  var callback,
       readAll = false,
       bytesNeeded,
       bytesAvailable = 0,
@@ -13,7 +9,7 @@ exports.readStream = function(filename) {
       chunkHead,
       chunkTail;
 
-  fs.createReadStream(filename)
+  stream
       .on("data", data)
       .on("end", end)
       .on("error", error);
@@ -23,14 +19,14 @@ exports.readStream = function(filename) {
       var buffer = consume(bytesNeeded);
       bytesAvailable -= bytesNeeded;
       bytesNeeded = undefined;
-      read.call(emitter, buffer);
+      callback(buffer);
     }
   }
 
   function maybeEnd() {
     if (bytesAvailable < bytesNeeded) {
       bytesNeeded = undefined;
-      emitter.emit("end");
+      callback(null);
     }
   }
 
@@ -64,21 +60,19 @@ exports.readStream = function(filename) {
     maybeRead();
   }
 
-  function error(e) {
-    emitter.emit("error", e);
-  }
-
   function end() {
     readAll = true;
     nextTick(maybeEnd);
   }
 
-  emitter.read = function(bytes, callback) {
+  function error(error) {
+    callback(null, error);
+  }
+
+  return function(bytes, _) {
     bytesNeeded = bytes;
     if (readAll && bytesAvailable < bytesNeeded) return void nextTick(maybeEnd);
-    read = callback;
+    callback = _;
     nextTick(maybeRead);
   };
-
-  return emitter;
 };

@@ -1,52 +1,62 @@
-var file = require("./file");
+var reader = require("./reader");
 
-exports.readStream = function(filename) {
-  var stream = file.readStream(filename),
+exports.read = function(stream, sink) {
+  var read = reader(stream),
       shapeType,
       readShapeType,
-      read = stream.read;
+      started = false,
+      paused = false;
 
-  delete stream.read;
+  sink.pause = function() { paused = true; };
+  sink.resume = function() { paused = false; if (started) readNextRecord(); };
 
   read(100, readFileHeader);
 
   function readFileHeader(fileHeader) {
-    stream.emit("header", {
-      fileCode: fileHeader.readInt32BE(0), // TODO verify 9994
-      version: fileHeader.readInt32LE(28), // TODO verify 1000
-      shapeType: shapeType = fileHeader.readInt32LE(32),
-      box: [fileHeader.readDoubleLE(36), fileHeader.readDoubleLE(44), fileHeader.readDoubleLE(52), fileHeader.readDoubleLE(60)]
-      // TODO zMin: fileHeader.readDoubleLE(68)
-      // TODO zMax: fileHeader.readDoubleLE(76)
-      // TODO mMin: fileHeader.readDoubleLE(84)
-      // TODO mMax: fileHeader.readDoubleLE(92)
-    });
-    if (!(shapeType in readShape)) return void stream.emit("error", new Error("unsupported shape type: " + shapeType));
-    readShapeType = readShape[shapeType];
+    if (!fileHeader) return void close();
+    shapeType = fileHeader.readInt32LE(32);
+    started = true;
+    sink.geometryStart();
+    sink.bbox(
+      fileHeader.readDoubleLE(36), // x0
+      fileHeader.readDoubleLE(52), // x1
+      fileHeader.readDoubleLE(44), // y0
+      fileHeader.readDoubleLE(60)  // y1
+    );
+    readShapeType = readShape[shapeType] || readNull;
+    if (!paused) readNextRecord();
+  }
+
+  function readNextRecord() {
     read(8, readRecordHeader);
   }
 
   function readRecordHeader(recordHeader) {
-    // TODO verify var recordNumber = recordHeader.readInt32BE(0);
+    if (!recordHeader) return void close();
     read(recordHeader.readInt32BE(4) * 2, function readRecord(record) {
-      var shapeType = record.readInt32LE(0);
-      stream.emit("record", shapeType ? readShapeType(record) : null);
-      read(8, readRecordHeader);
+      if (!record) return void close();
+      sink.geometryStart();
+      if (record.readInt32LE(0)) readShapeType(record, sink);
+      sink.geometryEnd();
+      if (!paused) readNextRecord();
     });
   }
 
-  return stream;
+  function close() {
+    if (started) sink.geometryEnd();
+    if (stream.close) stream.close();
+  }
 };
 
 var readShape = {
   0: readNull,
   1: readPoint,
-  3: readPoly(3), // PolyLine
-  5: readPoly(5), // Polygon
+  3: readPolyline, // PolyLine
+  5: readPolygon, // Polygon
   8: readMultiPoint,
   11: readPoint, // PointZ
-  13: readPoly(3), // PolyLineZ
-  15: readPoly(5), // PolygonZ
+  13: readPolyline, // PolyLineZ
+  15: readPolygon, // PolygonZ
   18: readMultiPoint // MultiPointZ
   // 21: TODO readPointM
   // 23: TODO readPolyLineM
@@ -55,50 +65,148 @@ var readShape = {
   // 31: TODO readMultiPatch
 };
 
-function readNull() {
-  return null;
+function readNull(record, sink) {
+  // noop
 }
 
-function readPoint(record) {
-  var x = record.readDoubleLE(4),
-      y = record.readDoubleLE(12);
-  return {
-    shapeType: 1,
-    x: x,
-    y: y
-  };
+function readPoint(record, sink) {
+  sink.point(record.readDoubleLE(4), record.readDoubleLE(12));
 }
 
-function readPoly(shapeType) {
-  return function(record) {
-    var box = [record.readDoubleLE(4), record.readDoubleLE(12), record.readDoubleLE(20), record.readDoubleLE(28)],
-        numParts = record.readInt32LE(36),
-        numPoints = record.readInt32LE(40),
-        parts = new Array(numParts),
-        points = new Array(numPoints),
-        i = 44,
-        j;
-    for (j = 0; j < numParts; ++j, i += 4) parts[j] = record.readInt32LE(i);
-    for (j = 0; j < numPoints; ++j, i += 16) points[j] = [record.readDoubleLE(i), record.readDoubleLE(i + 8)];
-    return {
-      shapeType: shapeType,
-      box: box,
-      parts: parts,
-      points: points
-    };
-  };
+function readMultiPoint(record, sink) {
+  var n = record.readInt32LE(36);
+
+  // sink.bbox(
+  //   record.readDoubleLE(4),  // x0
+  //   record.readDoubleLE(20), // x1
+  //   record.readDoubleLE(12), // y0
+  //   record.readDoubleLE(28)  // y1
+  // );
+
+  for (var i = 40, j = 40 + n * 16; i < j; i += 16) {
+    sink.point(
+      record.readDoubleLE(i),    // x
+      record.readDoubleLE(i + 8) // y
+    );
+  }
 }
 
-function readMultiPoint(record) {
-  var box = [record.readDoubleLE(4), record.readDoubleLE(12), record.readDoubleLE(20), record.readDoubleLE(28)],
-      numPoints = record.readInt32LE(36),
-      points = new Array(numPoints),
-      i = 40,
-      j;
-  for (j = 0; j < numPoints; ++j, i += 16) points[j] = [record.readDoubleLE(i), record.readDoubleLE(i + 8)];
-  return {
-    shapeType: 8,
-    box: box,
-    points: points
-  };
+function readPolyline(record, sink) {
+  var n = record.readInt32LE(36),
+      m = record.readInt32LE(40),
+      pointOffset = 44 + n * 4;
+
+  // sink.bbox(
+  //   record.readDoubleLE(4),  // x0
+  //   record.readDoubleLE(20), // x1
+  //   record.readDoubleLE(12), // y0
+  //   record.readDoubleLE(28)  // y1
+  // );
+
+  for (var i = 0, j = pointOffset + (record.readInt32LE(44) << 4); i < n; ++i, j = k) {
+    sink.lineStart();
+    for (var k = pointOffset + ((i < n - 1 ? record.readInt32LE(48 + (i << 2)) : m) << 4); j < k; j += 16) {
+      sink.point(
+        record.readDoubleLE(j),    // x
+        record.readDoubleLE(j + 8) // y
+      );
+    }
+    sink.lineEnd();
+  }
+}
+
+function readPolygon(record, sink) {
+  var n = record.readInt32LE(36),
+      m = record.readInt32LE(40),
+      pointOffset = 44 + (n << 2),
+      rings = new Array(m);
+
+  // sink.bbox(
+  //   record.readDoubleLE(4),  // x0
+  //   record.readDoubleLE(20), // x1
+  //   record.readDoubleLE(12), // y0
+  //   record.readDoubleLE(28)  // y1
+  // );
+
+  // Extract the ring indexes.
+  for (var i = 0, j = pointOffset + (record.readInt32LE(44) << 4); i < n; ++i) {
+    rings[i] = {0: j, 1: j = pointOffset + ((i < n - 1 ? record.readInt32LE(48 + (i << 2)) : m) << 4)};
+  }
+
+  // Find all the interior rings, and bind them to an exterior ring.
+  for (var i = 0, hole; i < n; ++i) {
+    if (!ringClockwise(record, hole = rings[i])) {
+      var j = hole[0],
+          x = record.readDoubleLE(j),
+          y = record.readDoubleLE(j + 8);
+      rings[i] = null;
+      for (var j = 0, ring; j < n; ++j) {
+        if ((ring = rings[j]) && ringContains(record, ring, x, y)) {
+          hole.next = ring.next;
+          ring.next = hole;
+          break;
+        }
+      }
+    }
+  }
+
+  // Output all the rings, grouping interior rings by exterior ring.
+  for (var i = 0, ring; i < n; ++i) {
+    if (ring = rings[i]) {
+      sink.polygonStart();
+      do {
+        sink.lineStart();
+        for (var j = ring[0], k = ring[1]; j < k; j += 16) {
+          sink.point(
+            record.readDoubleLE(j),    // x
+            record.readDoubleLE(j + 8) // y
+          );
+        }
+        sink.lineEnd();
+      } while (ring = ring.next);
+      sink.polygonEnd();
+    }
+  }
+}
+
+function ringClockwise(record, ring) {
+  var area = 0,
+      i = ring[0],
+      j = ring[1],
+      x0,
+      y0,
+      x1 = record.readDoubleLE(j - 16),
+      y1 = record.readDoubleLE(j - 8);
+
+  while (i < j) {
+    x0 = x1;
+    y0 = y1;
+    x1 = record.readDoubleLE(i);
+    y1 = record.readDoubleLE(i + 8);
+    area += y0 * x1 - x0 * y1;
+    i += 16;
+  }
+
+  return area >= 0;
+}
+
+function ringContains(record, ring, x, y) {
+  var contains = false,
+      i = ring[0],
+      j = ring[1],
+      x0,
+      y0,
+      x1 = record.readDoubleLE(j - 16),
+      y1 = record.readDoubleLE(j - 8);
+
+  while (i < j) {
+    x0 = x1;
+    y0 = y1;
+    x1 = record.readDoubleLE(i);
+    y1 = record.readDoubleLE(i + 8);
+    if (((y0 > y) ^ (y1 > y)) && (x < (x1 - x0) * (y - y0) / (y1 - y0) + x0)) contains = !contains;
+    i += 16;
+  }
+
+  return contains;
 }

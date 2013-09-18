@@ -36,14 +36,15 @@ var argv = optimist
 if (argv.help) return optimist.showHelp();
 
 var depth = 0,
-    out = fs.createWriteStream(argv.o);
+    input = argv._[0] === "-" ? process.stdin : fs.createReadStream(argv._[0]),
+    output = fs.createWriteStream(argv.o);
 
-dbf.read(argv._[0] ? fs.createReadStream(argv._[0]) : process.stdin, argv["property-encoding"], {
+dbf.read(input, argv["property-encoding"], {
   geometryStart: function() { log("geometryStart"); ++depth; },
   geometryEnd: function() { --depth; log("geometryEnd"); },
   property: function(name, value) { log("property", name, value); }
 });
 
 function log(name) {
-  out.write(new Array(depth + 1).join("  ") + [].join.call(arguments, " ") + os.EOL);
+  output.write(new Array(depth + 1).join("  ") + [].join.call(arguments, " ") + os.EOL);
 }

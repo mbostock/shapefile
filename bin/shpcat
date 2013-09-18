@@ -32,9 +32,10 @@ var argv = optimist
 if (argv.help) return optimist.showHelp();
 
 var depth = 0,
+    input = argv._[0] === "-" ? process.stdin : fs.createReadStream(argv._[0]),
     output = fs.createWriteStream(argv.o);
 
-shp.read(argv._[0] ? fs.createReadStream(argv._[0]) : process.stdin, {
+shp.read(input, {
   geometryStart: function() { log("geometryStart"); ++depth; },
   geometryEnd: function() { --depth; log("geometryEnd"); },
   bbox: function(x0, x1, y0, y1) { log("bbox", x0, x1, y0, y1); },

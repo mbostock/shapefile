@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
-var optimist = require("optimist"),
+var fs = require("fs"),
+    optimist = require("optimist"),
     shapefile = require("../"),
+    shp = require("../shp"),
     geojson = require("../geojson");
 
 var argv = optimist
@@ -16,11 +18,11 @@ var argv = optimist
       describe: "output GeoJSON file name",
       default: "/dev/stdout",
     })
-    // .options("ignore-properties", {
-    //   describe: "skip reading shapefile properties (.dbf) for faster performance",
-    //   type: "boolean",
-    //   default: false
-    // })
+    .options("ignore-properties", {
+      describe: "skip reading shapefile properties (.dbf) for faster performance",
+      type: "boolean",
+      default: false
+    })
     .options("property-encoding", {
       describe: "character encoding for reading shapefile properties (.dbf)",
       default: null
@@ -38,4 +40,8 @@ var argv = optimist
 
 if (argv.help) return optimist.showHelp();
 
-shapefile.read(argv._[0], argv["property-encoding"], geojson.write(argv.o));
+var input = argv._[0],
+    output = geojson.write(argv.o);
+
+if (argv["ignore-properties"]) shp.read(input === "-" ? process.stdin : fs.createReadStream(input), output);
+else shapefile.read(input, argv["property-encoding"], output);

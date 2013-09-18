@@ -18,7 +18,7 @@ exports.read = function(stream, encoding, sink) {
   read(32, readFileHeader);
 
   function readFileHeader(fileHeader) {
-    if (!fileHeader) return void stream.close();
+    if (!fileHeader) return void close();
     fileType = fileHeader.readUInt8(0); // TODO verify 3
     fileDate = new Date(1900 + fileHeader.readUInt8(1), fileHeader.readUInt8(2) - 1, fileHeader.readUInt8(3));
     recordCount = fileHeader.readUInt32LE(4);
@@ -27,7 +27,7 @@ exports.read = function(stream, encoding, sink) {
   }
 
   function readFields(fields) {
-    if (!fields) return void stream.close();
+    if (!fields) return void close();
     var n = 0;
     while (fields.readUInt8(n) != 0x0d) {
       fieldDescriptors.push({
@@ -58,7 +58,7 @@ exports.read = function(stream, encoding, sink) {
   }
 
   function close() {
-    sink.geometryEnd();
+    if (started) sink.geometryEnd();
     if (stream.close) stream.close();
   }
 };

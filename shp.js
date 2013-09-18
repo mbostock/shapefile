@@ -13,7 +13,7 @@ exports.read = function(stream, sink) {
   read(100, readFileHeader);
 
   function readFileHeader(fileHeader) {
-    if (!fileHeader) return void stream.close();
+    if (!fileHeader) return void close();
     shapeType = fileHeader.readInt32LE(32);
     started = true;
     sink.geometryStart();
@@ -43,7 +43,7 @@ exports.read = function(stream, sink) {
   }
 
   function close() {
-    sink.geometryEnd();
+    if (started) sink.geometryEnd();
     if (stream.close) stream.close();
   }
 };

@@ -10,6 +10,7 @@ module.exports = function(filename, callback) {
       geometry,
       firstPolygon, // within the first polygon of a possible MultiPolygon?
       firstLine, // within the first line of a possible MultiLineString?
+      firstPoint, // within the first point of a possible MultiPoint?
       lineIndex = 0,
       pointIndex = 0;
 
@@ -55,6 +56,12 @@ module.exports = function(filename, callback) {
         write("[" + point[0] + "," + point[1] + "]");
       }
       firstLine = null;
+    }
+
+    else if (firstPoint) {
+      if (geometry.properties || geometry.bbox) write(",");
+      write("\"coordinates\":[" + firstPoint[0] + "," + firstPoint[1]);
+      firstPoint = null;
     }
 
     pointIndex = lineIndex = 0;
@@ -144,7 +151,15 @@ module.exports = function(filename, callback) {
   }
 
   function point(x, y) {
-    if (firstLine) {
+    if (geometry.type === Null) {
+      geometry.type = Point;
+      firstPoint = [x, y];
+    } else if (geometry.type === Point) {
+      geometry.type = MultiPoint;
+      if (geometry.properties || geometry.bbox) write(",");
+      write("\"coordinates\":[[" + firstPoint[0] + "," + firstPoint[1] + "],");
+      firstPoint = null;
+    } else if (firstLine) {
       firstLine.push([x, y]);
     } else {
       if (pointIndex++) write(",");

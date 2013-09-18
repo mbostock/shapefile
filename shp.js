@@ -77,10 +77,10 @@ function readMultiPoint(record, sink) {
   //   record.readDoubleLE(28)  // y1
   // );
 
-  for (var i = 0; i < n; ++i) {
+  for (var i = 40, j = 40 + n * 16; i < j; i += 16) {
     sink.point(
-      record.readDoubleLE(40 + i * 16),    // x
-      record.readDoubleLE(40 + i * 16 + 8) // y
+      record.readDoubleLE(i),    // x
+      record.readDoubleLE(i + 8) // y
     );
   }
 }

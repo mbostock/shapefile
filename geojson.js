@@ -15,9 +15,9 @@ exports.write = function(stream, callback) {
     if (geometry) {
       stack.push(geometry);
       if (geometry.type === Null) {
-        geometry.type = GeometryCollection;
-        if (geometry.properties || geometry.bbox) write(",");
-        write("\"geometries\":[");
+        if (geometry.bbox) write(",");
+        if (stack.length === 1) geometry.type = FeatureCollection, write("\"features\":[");
+        else geometry.type = GeometryCollection, write("\"geometries\":[");
       } else {
         write(",");
       }
@@ -31,6 +31,7 @@ exports.write = function(stream, callback) {
     if (firstPolygon) {
       if (geometry.bbox) write(",");
       else if (geometry.properties) write("},");
+      if (stack.length === 1) write("\"type\":\"Feature\",\"geometry\":{");
       write("\"coordinates\":[");
       for (var i = 0, n = firstPolygon.length; i < n; ++i) {
         if (i) write(",");
@@ -48,6 +49,7 @@ exports.write = function(stream, callback) {
     else if (firstLine) {
       if (geometry.bbox) write(",");
       else if (geometry.properties) write("},");
+      if (stack.length === 1) write("\"type\":\"Feature\",\"geometry\":{");
       write("\"coordinates\":[");
       for (var j = 0, m = firstLine.length, point; j < m; ++j) {
         point = firstLine[j];
@@ -60,18 +62,19 @@ exports.write = function(stream, callback) {
     else if (firstPoint) {
       if (geometry.bbox) write(",");
       else if (geometry.properties) write("},");
+      if (stack.length === 1) write("\"type\":\"Feature\",\"geometry\":{");
       write("\"coordinates\":[" + firstPoint[0] + "," + firstPoint[1]);
       firstPoint = null;
     }
 
     pointIndex = lineIndex = 0;
 
-    if (geometry.type) write("]"); // close coordinates or geometries
-    if (geometry.type || geometry.properties) write(",");
-    write("\"type\":" + names[geometry.type] + "}");
+    if (geometry.type) write("],\"type\":" + names[geometry.type] + "}"); // close coordinates or geometries
 
     geometry = stack.pop();
-    if (!geometry) {
+    if (geometry) {
+      write("}");
+    } else {
       write(os.EOL);
       write(null);
       if (callback) callback(null);
@@ -98,6 +101,7 @@ exports.write = function(stream, callback) {
       geometry.type = MultiPolygon;
       if (geometry.bbox) write(",");
       else if (geometry.properties) write("},");
+      if (stack.length === 1) write("\"type\":\"Feature\",\"geometry\":{");
       write("\"coordinates\":[[");
       for (var i = 0, n = firstPolygon.length; i < n; ++i) {
         if (i) write(",");
@@ -131,6 +135,7 @@ exports.write = function(stream, callback) {
       geometry.type = MultiLineString;
       if (geometry.bbox) write(",");
       else if (geometry.properties) write("},");
+      if (stack.length === 1) write("\"type\":\"Feature\",\"geometry\":{");
       write("\"coordinates\":[[");
       for (var j = 0, m = firstLine.length, point; j < m; ++j) {
         point = firstLine[j];
@@ -161,6 +166,7 @@ exports.write = function(stream, callback) {
       geometry.type = MultiPoint;
       if (geometry.bbox) write(",");
       else if (geometry.properties) write("},");
+      if (stack.length === 1) write("\"type\":\"Feature\",\"geometry\":{");
       write("\"coordinates\":[[" + firstPoint[0] + "," + firstPoint[1] + "],");
       firstPoint = null;
     } else if (firstLine) {
@@ -191,7 +197,8 @@ var Null = 0,
     MultiLineString = 4,
     Polygon = 5,
     MultiPolygon = 6,
-    GeometryCollection = 7;
+    GeometryCollection = 7,
+    FeatureCollection = 8;
 
 var names = [
   "null",
@@ -201,5 +208,6 @@ var names = [
   "\"MultiLineString\"",
   "\"Polygon\"",
   "\"MultiPolygon\"",
-  "\"GeometryCollection\""
+  "\"GeometryCollection\"",
+  "\"FeatureCollection\""
 ];

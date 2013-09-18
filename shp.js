@@ -87,7 +87,8 @@ function readMultiPoint(record, sink) {
 
 function readPolyline(record, sink) {
   var n = record.readInt32LE(36),
-      m = record.readInt32LE(40);
+      m = record.readInt32LE(40),
+      pointOffset = 44 + n * 4;
 
   // sink.bbox(
   //   record.readDoubleLE(4),  // x0
@@ -96,12 +97,12 @@ function readPolyline(record, sink) {
   //   record.readDoubleLE(28)  // y1
   // );
 
-  for (var i = 0, j = record.readInt32LE(44); i < n; ++i, j = k) {
+  for (var i = 0, j = pointOffset + (record.readInt32LE(44) << 4); i < n; ++i, j = k) {
     sink.lineStart();
-    for (var k = i < n - 1 ? record.readInt32LE(44 + i * 4 + 4) : m; j < k; ++j) {
+    for (var k = pointOffset + ((i < n - 1 ? record.readInt32LE(48 + (i << 2)) : m) << 4); j < k; j += 16) {
       sink.point(
-        record.readDoubleLE(44 + n * 4 + j * 16),    // x
-        record.readDoubleLE(44 + n * 4 + j * 16 + 8) // y
+        record.readDoubleLE(j),    // x
+        record.readDoubleLE(j + 8) // y
       );
     }
     sink.lineEnd();
@@ -123,16 +124,16 @@ function readPolygon(record, sink) {
   // );
 
   // Extract the ring indexes.
-  for (var i = 0, j = pointOffset + (record.readInt32LE(44) << 4), i0 = n - 1; i < i0; ++i) {
-    rings[i] = {0: j, 1: j = pointOffset + (record.readInt32LE(48 + (i << 2)) << 4)};
+  for (var i = 0, j = pointOffset + (record.readInt32LE(44) << 4); i < n; ++i) {
+    rings[i] = {0: j, 1: j = pointOffset + ((i < n - 1 ? record.readInt32LE(48 + (i << 2)) : m) << 4)};
   }
-  rings[i0] = {0: j, 1: pointOffset + (m << 4)};
 
   // Find all the interior rings, and bind them to an exterior ring.
-  for (var i = 0, l = rings.length, hole; i < n; ++i) {
+  for (var i = 0, hole; i < n; ++i) {
     if (!ringClockwise(hole = rings[i])) {
-      var x = record.readDoubleLE(hole[0]),
-          y = record.readDoubleLE(hole[0] + 8);
+      var j = hole[0],
+          x = record.readDoubleLE(j),
+          y = record.readDoubleLE(j + 8);
       rings[i] = null;
       for (var j = 0, ring; j < n; ++j) {
         if ((ring = rings[j]) && ringContains(ring, x, y)) {

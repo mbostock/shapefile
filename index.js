@@ -11,29 +11,14 @@ exports.read = function(filename, encoding, sink) {
       shpDepth = 0;
 
   var dbfSink = {
-    geometryStart: function() {
-      ++dbfDepth;
-      if (dbfDepth === 2) sink.geometryStart();
-    },
-    geometryEnd: function() {
-      if (dbfDepth === 2) dbfSink.pause(), shpSink.resume();
-      else sink.geometryEnd();
-      --dbfDepth;
-    },
-    property: function(name, value) {
-      sink.property(name, value);
-    }
+    geometryStart: function() { if (++dbfDepth === 2) sink.geometryStart(); },
+    geometryEnd: function() { if (--dbfDepth === 0) sink.geometryEnd(); else dbfSink.pause(), shpSink.resume(); },
+    property: function(name, value) { sink.property(name, value); }
   };
 
   var shpSink = {
-    geometryStart: function() {
-      ++shpDepth;
-      if (shpDepth === 1) sink.geometryStart(), shpSink.pause(), dbfSink.resume();
-    },
-    geometryEnd: function() {
-      if (shpDepth === 2) sink.geometryEnd(), shpSink.pause(), dbfSink.resume();
-      --shpDepth;
-    },
+    geometryStart: function() { if (++shpDepth === 1) sink.geometryStart(), shpSink.pause(), dbfSink.resume(); },
+    geometryEnd: function() { if (--shpDepth === 1) sink.geometryEnd(), shpSink.pause(), dbfSink.resume(); },
     bbox: function(x0, x1, y0, y1) { sink.bbox(x0, x1, y0, y1); },
     polygonStart: function() { sink.polygonStart(); },
     polygonEnd: function() { sink.polygonEnd(); },

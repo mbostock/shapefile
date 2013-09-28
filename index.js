@@ -59,7 +59,7 @@ exports.readStream = function(filename, options) {
               type: "Feature",
               properties: properties,
               geometry: record == null ? null : convert(record),
-              box: record == null ? undefined : record.bbox
+              bbox: record == null ? undefined : record.box
             });
           });
         })

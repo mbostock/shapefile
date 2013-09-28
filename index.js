@@ -58,7 +58,8 @@ exports.readStream = function(filename, options) {
             emitter.emit("feature", {
               type: "Feature",
               properties: properties,
-              geometry: record == null ? null : convert(record)
+              geometry: record == null ? null : convert(record),
+              bbox: record == null ? undefined : record.box
             });
           });
         })

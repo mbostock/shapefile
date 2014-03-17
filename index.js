@@ -22,7 +22,7 @@ exports.reader = function(filename, options) {
   if (!ignoreProperties) dbfReader = dbf.reader(filename + ".dbf", encoding);
   shpReader = shp.reader(filename + ".shp");
 
-  function readDbfHeader(callback) {
+  function readHeader(callback) {
     dbfReader.readHeader(function(error, header) {
       if (header === end) error = new Error("unexpected EOF");
       if (error) return callback(error);
@@ -59,7 +59,7 @@ exports.reader = function(filename, options) {
     };
   }
 
-  function readDbfRecord(callback) {
+  function readRecord(callback) {
     dbfReader.readRecord(function(error, dbfRecord) {
       if (dbfRecord === end) return callback(null, end);
       if (error) return callback(error);
@@ -89,7 +89,7 @@ exports.reader = function(filename, options) {
     return this;
   }
 
-  function closeDbf(callback) {
+  function close(callback) {
     dbfReader.close(function(error) {
       if (error) return callback(error);
       closeShp(callback);
@@ -103,10 +103,10 @@ exports.reader = function(filename, options) {
   }
 
   return dbfReader ? {
-    readHeader: readDbfHeader,
-    readAllRecords: readAllRecords(readDbfRecord),
-    readRecord: readDbfRecord,
-    close: closeDbf,
+    readHeader: readHeader,
+    readAllRecords: readAllRecords(readRecord),
+    readRecord: readRecord,
+    close: close
   } : {
     readHeader: readShpHeader,
     readAllRecords: readAllRecords(readShpRecord),

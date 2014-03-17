@@ -47,3 +47,7 @@ Each *record* in the *records* array is a [GeoJSON feature](http://geojson.org/g
 <a name="reader_close" href="#reader_close">#</a> reader.<b>close</b>(<i>callback</i>)
 
 Closes the underlying files for this reader. You should call this when you are done reading. If an error occurs during <a href="#reader_readHeader">readHeader</a>, <a href="#reader_readRecord">readRecord</a> or <a href="#reader_readAllRecords">readAllRecords</a>, the reader will be closed automatically.
+
+<a name="end" href="#end">#</a> shapefile.<b>end</b>
+
+A sentinel value used <a href="#reader_readRecord">readRecord</a> to indicate that the end of the file has been reached, and no more records are available. (Note that if the end of file is reached when <a href="#reader_readHeader">readHeader</a> is called, this is considered an error because the header is required by the shapefile format.)

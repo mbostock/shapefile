@@ -1,7 +1,6 @@
 var fs = require("fs"),
     vows = require("vows"),
-    assert = require("assert"),
-    queue = require("queue-async");
+    assert = require("assert");
 
 var shapefile = require("../");
 
@@ -52,20 +51,7 @@ function testConversion(name, options) {
 
 function readCollection(name, options) {
   return function() {
-    var callback = this.callback,
-        reader = shapefile.reader("./test/" + name + ".shp", options);
-    queue(1)
-        .defer(reader.readHeader)
-        .defer(reader.readAllRecords)
-        .defer(reader.close)
-        .await(function(error, header, records) {
-          if (error) return callback(error);
-          callback(null, {
-            type: "FeatureCollection",
-            bbox: header.bbox,
-            features: records
-          });
-        });
+    shapefile.read("./test/" + name + ".shp", options, this.callback);
   };
 }
 

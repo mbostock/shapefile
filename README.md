@@ -6,9 +6,20 @@ Caveat emptor: this library is a work in progress and does not currently support
 
 ## Reading a Shapefile
 
+<a name="read" href="#read">#</a> shapefile.<b>read</b>(<i>filename</i>[, <i>options</i>], <i>callback</i>)
+
+A convenience API for reading an entire shapefile in one go. Use this method if you don’t mind putting the whole shapefile in memory; use <a href="#reader">reader</a> instead if you want to process records individually. The specified *callback* with two arguments:
+
+* *error* - the error, if any
+* *collection* - a [GeoJSON feature collection](http://geojson.org/geojson-spec.html#feature-collection-objects)
+
+The *collection* has a `bbox` property containing representing the bounding box of all records in this shapefile. The bounding box is specified as [xmin, ymin, xmax, ymax], where *x* and *y* represent longitude and latitude in spherical coordinates.
+
+## Streaming a Shapefile
+
 <a name="reader" href="#reader">#</a> shapefile.<b>reader</b>(<i>filename</i>[, <i>options</i>])
 
-The main API for reading a shapefile is shapefile. The supported options are:
+The main API for reading a shapefile. The supported options are:
 
 * *encoding* - the DBF encoding (defaults to ISO-8859-1)
 * *ignore-properties* - if true, don’t read properties (faster; defaults to false)
@@ -35,18 +46,9 @@ The *record* object is a [GeoJSON feature](http://geojson.org/geojson-spec.html#
 
 If there are no more records in this shapefile, the *record* is the special value <a href="#end">shapefile.end</a>.
 
-<a name="reader_readAllRecords" href="#reader_readAllRecords">#</a> reader.<b>readAllRecords</b>(<i>callback</i>)
-
-Reads all the remaining shapefile records, invoking the specified *callback* with two arguments:
-
-* *error* - the error, if any
-* *records* - an array of record objects
-
-Each *record* in the *records* array is a [GeoJSON feature](http://geojson.org/geojson-spec.html#feature-objects). This method is provided as a convenience routine on top of <a href="#reader_readRecord">readRecord</a> when you don’t mind reading the entire shapefile into memory.
-
 <a name="reader_close" href="#reader_close">#</a> reader.<b>close</b>(<i>callback</i>)
 
-Closes the underlying files for this reader. You should call this when you are done reading. If an error occurs during <a href="#reader_readHeader">readHeader</a>, <a href="#reader_readRecord">readRecord</a> or <a href="#reader_readAllRecords">readAllRecords</a>, the reader will be closed automatically.
+Closes the underlying files for this reader. You should call this when you are done reading. If an error occurs during <a href="#reader_readHeader">readHeader</a> or <a href="#reader_readRecord">readRecord</a>, the reader will be closed automatically.
 
 <a name="end" href="#end">#</a> shapefile.<b>end</b>
 

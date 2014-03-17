@@ -1,6 +1,5 @@
 var vows = require("vows"),
-    assert = require("assert"),
-    queue = require("queue-async");
+    assert = require("assert");
 
 var shp = require("../shp");
 
@@ -104,25 +103,21 @@ suite.addBatch({
   }
 });
 
-function readHeader(path) {
+function readHeader(path, encoding) {
   return function() {
-    var reader = shp.reader(path);
-    queue(1)
-        .defer(reader.readHeader)
-        .defer(reader.close)
-        .await(this.callback);
+    var callback = this.callback;
+    shp.read(path, encoding, function(error, header, records) {
+      callback(error, header);
+    });
   };
 }
 
 function readRecords(path, encoding) {
   return function() {
-    var reader = shp.reader(path),
-        callback = this.callback;
-    queue(1)
-        .defer(reader.readHeader)
-        .defer(reader.readAllRecords)
-        .defer(reader.close)
-        .await(function(error, header, records) { callback(error, records); });
+    var callback = this.callback;
+    shp.read(path, encoding, function(error, header, records) {
+      callback(error, records);
+    });
   };
 }
 

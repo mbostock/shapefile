@@ -1,6 +1,10 @@
-var file = require("./file");
+var file = require("./file"),
+    queue = require("queue-async");
 
-exports.reader = function(filename) {
+exports.read = require("./read")(reader);
+exports.reader = reader;
+
+function reader(filename) {
   var fileReader = file.reader(filename),
       shapeType;
 
@@ -19,19 +23,6 @@ exports.reader = function(filename) {
         // TODO mMax: fileHeader.readDoubleLE(92)
       });
     });
-    return this;
-  }
-
-  function readAllRecords(callback) {
-    var records = [];
-    (function readNextRecord() {
-      readRecord(function(error, record) {
-        if (error) return callback(error);
-        if (record === end) return callback(null, records);
-        records.push(record);
-        process.nextTick(readNextRecord);
-      });
-    })();
     return this;
   }
 
@@ -60,11 +51,10 @@ exports.reader = function(filename) {
 
   return {
     readHeader: readHeader,
-    readAllRecords: readAllRecords,
     readRecord: readRecord,
     close: close
   };
-};
+}
 
 var end = exports.end = file.end;
 

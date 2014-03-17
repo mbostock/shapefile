@@ -1,8 +1,7 @@
 process.env.TZ = "America/Los_Angeles";
 
 var vows = require("vows"),
-    assert = require("assert"),
-    queue = require("queue-async");
+    assert = require("assert");
 
 var dbf = require("../dbf");
 
@@ -146,23 +145,19 @@ suite.addBatch({
 
 function readHeader(path, encoding) {
   return function() {
-    var reader = dbf.reader(path, encoding);
-    queue(1)
-        .defer(reader.readHeader)
-        .defer(reader.close)
-        .await(this.callback);
+    var callback = this.callback;
+    dbf.read(path, encoding, function(error, header, records) {
+      callback(error, header);
+    });
   };
 }
 
 function readRecords(path, encoding) {
   return function() {
-    var reader = dbf.reader(path, encoding),
-        callback = this.callback;
-    queue(1)
-        .defer(reader.readHeader)
-        .defer(reader.readAllRecords)
-        .defer(reader.close)
-        .await(function(error, header, records) { callback(error, records); });
+    var callback = this.callback;
+    dbf.read(path, encoding, function(error, header, records) {
+      callback(error, records);
+    });
   };
 }
 

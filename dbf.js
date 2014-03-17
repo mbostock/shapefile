@@ -1,7 +1,10 @@
 var file = require("./file"),
     iconv = require("iconv-lite");
 
-exports.reader = function(filename, encoding) {
+exports.read = require("./read")(reader);
+exports.reader = reader;
+
+function reader(filename, encoding) {
   var fileReader = file.reader(filename),
       decode = utf8.test(encoding) ? decodeUtf8 : decoder(encoding || "ISO-8859-1"),
       fieldDescriptors = [],
@@ -36,19 +39,6 @@ exports.reader = function(filename, encoding) {
     return this;
   }
 
-  function readAllRecords(callback) {
-    var records = [];
-    (function readNextRecord() {
-      readRecord(function(error, record) {
-        if (error) return callback(error);
-        if (record === end) return callback(null, records);
-        records.push(record);
-        process.nextTick(readNextRecord);
-      });
-    })();
-    return this;
-  }
-
   function readRecord(callback) {
     if (!recordBytes) return callback(new Error("must read header before reading records")), this;
     fileReader.read(recordBytes, function readRecord(error, record) {
@@ -69,11 +59,10 @@ exports.reader = function(filename, encoding) {
 
   return {
     readHeader: readHeader,
-    readAllRecords: readAllRecords,
     readRecord: readRecord,
     close: close
   };
-};
+}
 
 var end = exports.end = file.end;
 

@@ -1,9 +1,26 @@
 var shp = require("./shp"),
-    dbf = require("./dbf");
+    dbf = require("./dbf"),
+    queue = require("queue-async");
 
 exports.version = require("./package.json").version;
+exports.read = read;
+exports.reader = reader;
 
-exports.reader = function(filename, options) {
+var readInternal = require("./read")(reader);
+
+function read(filename, options, callback) {
+  if (arguments.length < 3) callback = options, options = null;
+  readInternal(filename, options, function(error, header, records) {
+    if (error) return callback(error);
+    callback(null, {
+      type: "FeatureCollection",
+      bbox: header.bbox,
+      features: records
+    });
+  });
+}
+
+function reader(filename, options) {
   var convertProperties,
       convertGeometry,
       encoding = null,
@@ -42,21 +59,6 @@ exports.reader = function(filename, options) {
       callback(null, {bbox: header.box});
     });
     return this;
-  }
-
-  function readAllRecords(readRecord) {
-    return function(callback) {
-      var records = [];
-      (function readNextRecord() {
-        readRecord(function(error, record) {
-          if (error) return callback(error);
-          if (record === end) return callback(null, records);
-          records.push(record);
-          process.nextTick(readNextRecord);
-        });
-      })();
-      return this;
-    };
   }
 
   function readRecord(callback) {
@@ -104,16 +106,14 @@ exports.reader = function(filename, options) {
 
   return dbfReader ? {
     readHeader: readHeader,
-    readAllRecords: readAllRecords(readRecord),
     readRecord: readRecord,
     close: close
   } : {
     readHeader: readShpHeader,
-    readAllRecords: readAllRecords(readShpRecord),
     readRecord: readShpRecord,
     close: closeShp
   };
-};
+}
 
 var end = exports.end = shp.end;
 

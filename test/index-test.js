@@ -39,21 +39,19 @@ function fixExpectedProperties(feature) {
 
 function testConversion(name, options) {
   return {
-    topic: function() {
-      var callback = this.callback, bbox, features = [];
-      shapefile.readStream("./test/" + name + ".shp", options)
-          .on("error", callback)
-          .on("header", function(header) { bbox = header.bbox; })
-          .on("feature", function(feature) { features.push(feature); })
-          .on("error", callback)
-          .on("end", function() { callback(null, {type: "FeatureCollection", bbox: bbox, features: features}); });
-    },
+    topic: readCollection(name, options),
     "has the expected features": function(actual) {
       var expected = JSON.parse(fs.readFileSync("./test/" + name + ".json", "utf-8"));
       actual.features.forEach(fixActualProperties);
       expected.features.forEach(fixExpectedProperties);
       assert.deepEqual(actual, expected);
     }
+  };
+}
+
+function readCollection(name, options) {
+  return function() {
+    shapefile.read("./test/" + name + ".shp", options, this.callback);
   };
 }
 

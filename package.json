@@ -1,6 +1,6 @@
 {
   "name": "shapefile",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "An implementation of the shapefile (.shp) spatial data format.",
   "keywords": [
     "geojson",
@@ -17,7 +17,8 @@
   "main": "./index.js",
   "dependencies": {
     "iconv-lite": "0.2",
-    "optimist": "0.3"
+    "optimist": "0.3",
+    "queue-async": "1"
   },
   "devDependencies": {
     "vows": "0.7"

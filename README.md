@@ -43,3 +43,7 @@ Reads all the remaining shapefile records, invoking the specified *callback* wit
 * *records* - an array of record objects
 
 Each *record* in the *records* array is a [GeoJSON feature](http://geojson.org/geojson-spec.html#feature-objects). This method is provided as a convenience routine on top of <a href="#reader_readRecord">readRecord</a> when you don’t mind reading the entire shapefile into memory.
+
+<a name="reader_close" href="#reader_close">#</a> reader.<b>close</b>(<i>callback</i>)
+
+Closes the underlying files for this reader. You should call this when you are done reading. If an error occurs during <a href="#reader_readHeader">readHeader</a>, <a href="#reader_readRecord">readRecord</a> or <a href="#reader_readAllRecords">readAllRecords</a>, the reader will be closed automatically.

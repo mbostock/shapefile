@@ -56,17 +56,7 @@ function readCollection(name, options) {
         reader = shapefile.reader("./test/" + name + ".shp", options);
     queue(1)
         .defer(reader.readHeader)
-        .defer(function(callback) {
-          var records = [];
-          (function readRecord() {
-            reader.readRecord(function(error, record) {
-              if (error) return callback(error);
-              if (record === shapefile.end) return callback(null, records);
-              records.push(record);
-              process.nextTick(readRecord);
-            });
-          })();
-        })
+        .defer(reader.readAllRecords)
         .defer(reader.close)
         .await(function(error, header, records) {
           if (error) return callback(error);

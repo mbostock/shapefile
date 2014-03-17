@@ -7,51 +7,71 @@ exports.reader = function(filename, encoding) {
       fieldDescriptors = [],
       recordBytes;
 
-  return {
-    readHeader: function readHeader(callback) {
-      fileReader.read(32, function(error, fileHeader) {
-        if (fileHeader === end) error = new Error("unexpected EOF");
-        if (error) return void callback(error);
-        var fileType = fileHeader.readUInt8(0), // TODO verify 3
-            fileDate = new Date(1900 + fileHeader.readUInt8(1), fileHeader.readUInt8(2) - 1, fileHeader.readUInt8(3)),
-            recordCount = fileHeader.readUInt32LE(4);
-        recordBytes = fileHeader.readUInt16LE(10);
-        fileReader.read(fileHeader.readUInt16LE(8) - 32, function readFields(error, fields) {
-          var n = 0;
-          while (fields.readUInt8(n) != 0x0d) {
-            fieldDescriptors.push({
-              name: fieldName(decode(fields, n, n + 11)),
-              type: fields.toString("ascii", n + 11, n + 12),
-              length: fields.readUInt8(n + 16)
-            });
-            n += 32;
-          }
-          callback(null, {
-            version: fileType,
-            date: fileDate,
-            count: recordCount,
-            fields: fieldDescriptors
+  function readHeader(callback) {
+    fileReader.read(32, function(error, fileHeader) {
+      if (fileHeader === end) error = new Error("unexpected EOF");
+      if (error) return void callback(error);
+      var fileType = fileHeader.readUInt8(0), // TODO verify 3
+          fileDate = new Date(1900 + fileHeader.readUInt8(1), fileHeader.readUInt8(2) - 1, fileHeader.readUInt8(3)),
+          recordCount = fileHeader.readUInt32LE(4);
+      recordBytes = fileHeader.readUInt16LE(10);
+      fileReader.read(fileHeader.readUInt16LE(8) - 32, function readFields(error, fields) {
+        var n = 0;
+        while (fields.readUInt8(n) != 0x0d) {
+          fieldDescriptors.push({
+            name: fieldName(decode(fields, n, n + 11)),
+            type: fields.toString("ascii", n + 11, n + 12),
+            length: fields.readUInt8(n + 16)
           });
+          n += 32;
+        }
+        callback(null, {
+          version: fileType,
+          date: fileDate,
+          count: recordCount,
+          fields: fieldDescriptors
         });
       });
-      return this;
-    },
-    readRecord: function readRecord(callback) {
-      if (!recordBytes) return callback(new Error("must read header before reading records")), this;
-      fileReader.read(recordBytes, function readRecord(error, record) {
-        if (record === end) return callback(null, end);
-        if (error) return void callback(error);
-        var i = 1;
-        callback(null, fieldDescriptors.map(function(field) {
-          return fieldTypes[field.type](decode(record, i, i += field.length));
-        }));
+    });
+    return this;
+  }
+
+  function readAllRecords(callback) {
+    var records = [];
+    (function readNextRecord() {
+      readRecord(function(error, record) {
+        if (error) return callback(error);
+        if (record === end) return callback(null, records);
+        records.push(record);
+        process.nextTick(readNextRecord);
       });
-      return this;
-    },
-    close: function close(callback) {
-      fileReader.close(callback);
-      return this;
-    }
+    })();
+    return this;
+  }
+
+  function readRecord(callback) {
+    if (!recordBytes) return callback(new Error("must read header before reading records")), this;
+    fileReader.read(recordBytes, function readRecord(error, record) {
+      if (record === end) return callback(null, end);
+      if (error) return void callback(error);
+      var i = 1;
+      callback(null, fieldDescriptors.map(function(field) {
+        return fieldTypes[field.type](decode(record, i, i += field.length));
+      }));
+    });
+    return this;
+  }
+
+  function close(callback) {
+    fileReader.close(callback);
+    return this;
+  }
+
+  return {
+    readHeader: readHeader,
+    readAllRecords: readAllRecords,
+    readRecord: readRecord,
+    close: close
   };
 };
 

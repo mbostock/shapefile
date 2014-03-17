@@ -4,45 +4,65 @@ exports.reader = function(filename) {
   var fileReader = file.reader(filename),
       shapeType;
 
+  function readHeader(callback) {
+    fileReader.read(100, function(error, fileHeader) {
+      if (fileHeader === end) error = new Error("unexpected EOF");
+      if (error) return void callback(error);
+      callback(null, {
+        fileCode: fileHeader.readInt32BE(0), // TODO verify 9994
+        version: fileHeader.readInt32LE(28), // TODO verify 1000
+        shapeType: shapeType = fileHeader.readInt32LE(32),
+        box: [fileHeader.readDoubleLE(36), fileHeader.readDoubleLE(44), fileHeader.readDoubleLE(52), fileHeader.readDoubleLE(60)]
+        // TODO zMin: fileHeader.readDoubleLE(68)
+        // TODO zMax: fileHeader.readDoubleLE(76)
+        // TODO mMin: fileHeader.readDoubleLE(84)
+        // TODO mMax: fileHeader.readDoubleLE(92)
+      });
+    });
+    return this;
+  }
+
+  function readAllRecords(callback) {
+    var records = [];
+    (function readNextRecord() {
+      readRecord(function(error, record) {
+        if (error) return callback(error);
+        if (record === end) return callback(null, records);
+        records.push(record);
+        process.nextTick(readNextRecord);
+      });
+    })();
+    return this;
+  }
+
+  function readRecord(callback) {
+    if (!shapeType) return callback(new Error("must read header before reading records")), this;
+    if (!(shapeType in readShape)) return callback(new Error("unsupported shape type: " + shapeType)), this;
+    var readShapeType = readShape[shapeType];
+    fileReader.read(8, function readRecordHeader(error, recordHeader) {
+      if (recordHeader === end) return callback(null, end);
+      if (error) return void callback(error);
+      // TODO verify var recordNumber = recordHeader.readInt32BE(0);
+      fileReader.read(recordHeader.readInt32BE(4) * 2, function readRecord(error, record) {
+        if (record === end) error = new Error("unexpected EOF");
+        if (error) return void callback(error);
+        var shapeType = record.readInt32LE(0);
+        callback(null, shapeType ? readShapeType(record) : null);
+      });
+    });
+    return this;
+  }
+
+  function close(callback) {
+    fileReader.close(callback);
+    return this;
+  }
+
   return {
-    readHeader: function readHeader(callback) {
-      fileReader.read(100, function(error, fileHeader) {
-        if (fileHeader === end) error = new Error("unexpected EOF");
-        if (error) return void callback(error);
-        callback(null, {
-          fileCode: fileHeader.readInt32BE(0), // TODO verify 9994
-          version: fileHeader.readInt32LE(28), // TODO verify 1000
-          shapeType: shapeType = fileHeader.readInt32LE(32),
-          box: [fileHeader.readDoubleLE(36), fileHeader.readDoubleLE(44), fileHeader.readDoubleLE(52), fileHeader.readDoubleLE(60)]
-          // TODO zMin: fileHeader.readDoubleLE(68)
-          // TODO zMax: fileHeader.readDoubleLE(76)
-          // TODO mMin: fileHeader.readDoubleLE(84)
-          // TODO mMax: fileHeader.readDoubleLE(92)
-        });
-      });
-      return this;
-    },
-    readRecord: function readRecord(callback) {
-      if (!shapeType) return callback(new Error("must read header before reading records")), this;
-      if (!(shapeType in readShape)) return callback(new Error("unsupported shape type: " + shapeType)), this;
-      var readShapeType = readShape[shapeType];
-      fileReader.read(8, function readRecordHeader(error, recordHeader) {
-        if (recordHeader === end) return callback(null, end);
-        if (error) return void callback(error);
-        // TODO verify var recordNumber = recordHeader.readInt32BE(0);
-        fileReader.read(recordHeader.readInt32BE(4) * 2, function readRecord(error, record) {
-          if (record === end) error = new Error("unexpected EOF");
-          if (error) return void callback(error);
-          var shapeType = record.readInt32LE(0);
-          callback(null, shapeType ? readShapeType(record) : null);
-        });
-      });
-      return this;
-    },
-    close: function close(callback) {
-      fileReader.close(callback);
-      return this;
-    }
+    readHeader: readHeader,
+    readAllRecords: readAllRecords,
+    readRecord: readRecord,
+    close: close
   };
 };
 

@@ -120,17 +120,7 @@ function readRecords(path, encoding) {
         callback = this.callback;
     queue(1)
         .defer(reader.readHeader)
-        .defer(function(callback) {
-          var records = [];
-          (function readRecord() {
-            reader.readRecord(function(error, record) {
-              if (error) return callback(error);
-              if (record === shp.end) return callback(null, records);
-              records.push(record);
-              process.nextTick(readRecord);
-            });
-          })();
-        })
+        .defer(reader.readAllRecords)
         .defer(reader.close)
         .await(function(error, header, records) { callback(error, records); });
   };

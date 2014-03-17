@@ -44,6 +44,21 @@ exports.reader = function(filename, options) {
     return this;
   }
 
+  function readAllRecords(readRecord) {
+    return function(callback) {
+      var records = [];
+      (function readNextRecord() {
+        readRecord(function(error, record) {
+          if (error) return callback(error);
+          if (record === end) return callback(null, records);
+          records.push(record);
+          process.nextTick(readNextRecord);
+        });
+      })();
+      return this;
+    };
+  }
+
   function readDbfRecord(callback) {
     dbfReader.readRecord(function(error, dbfRecord) {
       if (dbfRecord === end) return callback(null, end);
@@ -87,10 +102,16 @@ exports.reader = function(filename, options) {
     return this;
   }
 
-  return {
-    readHeader: dbfReader ? readDbfHeader : readShpHeader,
-    readRecord: dbfReader ? readDbfRecord : readShpRecord,
-    close: dbfReader ? closeDbf : closeShp
+  return dbfReader ? {
+    readHeader: readDbfHeader,
+    readAllRecords: readAllRecords(readDbfRecord),
+    readRecord: readDbfRecord,
+    close: closeDbf,
+  } : {
+    readHeader: readShpHeader,
+    readAllRecords: readAllRecords(readShpRecord),
+    readRecord: readShpRecord,
+    close: closeShp
   };
 };
 

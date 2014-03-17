@@ -1,6 +1,7 @@
 var fs = require("fs"),
     vows = require("vows"),
-    assert = require("assert");
+    assert = require("assert"),
+    queue = require("queue-async");
 
 var shapefile = require("../");
 
@@ -39,21 +40,42 @@ function fixExpectedProperties(feature) {
 
 function testConversion(name, options) {
   return {
-    topic: function() {
-      var callback = this.callback, bbox, features = [];
-      shapefile.readStream("./test/" + name + ".shp", options)
-          .on("error", callback)
-          .on("header", function(header) { bbox = header.bbox; })
-          .on("feature", function(feature) { features.push(feature); })
-          .on("error", callback)
-          .on("end", function() { callback(null, {type: "FeatureCollection", bbox: bbox, features: features}); });
-    },
+    topic: readCollection(name, options),
     "has the expected features": function(actual) {
       var expected = JSON.parse(fs.readFileSync("./test/" + name + ".json", "utf-8"));
       actual.features.forEach(fixActualProperties);
       expected.features.forEach(fixExpectedProperties);
       assert.deepEqual(actual, expected);
     }
+  };
+}
+
+function readCollection(name, options) {
+  return function() {
+    var callback = this.callback,
+        reader = shapefile.reader("./test/" + name + ".shp", options);
+    queue(1)
+        .defer(reader.readHeader)
+        .defer(function(callback) {
+          var records = [];
+          (function readRecord() {
+            reader.readRecord(function(error, record) {
+              if (error) return callback(error);
+              if (record === shapefile.end) return callback(null, records);
+              records.push(record);
+              process.nextTick(readRecord);
+            });
+          })();
+        })
+        .defer(reader.close)
+        .await(function(error, header, records) {
+          if (error) return callback(error);
+          callback(null, {
+            type: "FeatureCollection",
+            bbox: header.bbox,
+            features: records
+          });
+        });
   };
 }
 

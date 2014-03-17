@@ -54,7 +54,7 @@ exports.reader = function(filename, options) {
         callback(null, {
           type: "Feature",
           properties: convertProperties(dbfRecord),
-          geometry: convertGeometry(shpRecord)
+          geometry: shpRecord == null ? null : convertGeometry(shpRecord)
         });
       });
     });
@@ -68,7 +68,7 @@ exports.reader = function(filename, options) {
       callback(null, {
         type: "Feature",
         properties: {},
-        geometry: convertGeometry(shpRecord)
+        geometry: shpRecord == null ? null : convertGeometry(shpRecord)
       });
     });
     return this;

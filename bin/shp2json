@@ -2,6 +2,7 @@
 
 var fs = require("fs"),
     optimist = require("optimist"),
+    queue = require("queue-async"),
     shapefile = require("../");
 
 var argv = optimist
@@ -45,29 +46,40 @@ var previous;
 
 var reader = shapefile.reader(argv._[0], {encoding: argv["property-encoding"], "ignore-properties": !!argv["ignore-properties"]});
 
-reader.readHeader(function(error, header) {
-  if (error) throw error;
-  out.write("{\"type\":\"FeatureCollection\",\"bbox\":");
-  out.write(JSON.stringify(header.bbox));
-  out.write(",\"features\":[\n");
-  process.nextTick(readRecord);
-});
+queue(1)
+    .defer(readHeader)
+    .defer(readAllRecords)
+    .defer(close)
+    .await(function(error) { if (error) throw error; });
 
-function readRecord() {
-  reader.readRecord(function(error, record) {
-    if (error) throw error;
-    if (record === shapefile.end) return close();
-    if (previous) out.write(",\n");
-    out.write(JSON.stringify(record));
-    previous = true;
-    process.nextTick(readRecord);
+function readHeader(callback) {
+  reader.readHeader(function(error, header) {
+    if (error) return callback(error);
+    out.write("{\"type\":\"FeatureCollection\",\"bbox\":");
+    out.write(JSON.stringify(header.bbox));
+    out.write(",\"features\":[\n");
+    callback(null);
   });
 }
 
-function close() {
+function readAllRecords(callback) {
+  (function readRecord() {
+    reader.readRecord(function(error, record) {
+      if (error) return callback(error);
+      if (record === shapefile.end) return callback(null);
+      if (previous) out.write(",\n");
+      out.write(JSON.stringify(record));
+      previous = true;
+      process.nextTick(readRecord);
+    });
+  })();
+}
+
+function close(callback) {
   reader.close(function(error) {
-    if (error) throw error;
+    if (error) return callback(error);
     out.write("]}\n");
     if (out !== process.stdout) out.end();
+    callback(null);
   });
 }

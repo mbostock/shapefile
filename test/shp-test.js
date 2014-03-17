@@ -1,5 +1,6 @@
 var vows = require("vows"),
-    assert = require("assert");
+    assert = require("assert"),
+    queue = require("queue-async");
 
 var shp = require("../shp");
 
@@ -7,12 +8,7 @@ var suite = vows.describe("shp");
 
 suite.addBatch({
   "The header of a simple shapefile": {
-    topic: function() {
-      var callback = this.callback;
-      shp.readStream("./test/boolean-property.shp")
-          .on("error", callback)
-          .on("header", function(header) { callback(null, header); });
-    },
+    topic: readHeader("./test/boolean-property.shp"),
     "has the expected values": function(header) {
       assert.deepEqual(header, {
         fileCode: 9994,
@@ -24,12 +20,7 @@ suite.addBatch({
   },
 
   "The header of an empty shapefile": {
-    topic: function() {
-      var callback = this.callback;
-      shp.readStream("./test/empty.shp")
-          .on("error", callback)
-          .on("header", function(header) { callback(null, header); });
-    },
+    topic: readHeader("./test/empty.shp"),
     "has the expected values": function(header) {
       assert.deepEqual(header, {
         fileCode: 9994,
@@ -41,26 +32,14 @@ suite.addBatch({
   },
 
   "The records of an empty shapefile": {
-    topic: function() {
-      var callback = this.callback, records = [];
-      shp.readStream("./test/empty.shp")
-          .on("error", callback)
-          .on("record", function(record) { records.push(record); })
-          .on("end", function() { callback(null, records); });
-    },
+    topic: readRecords("./test/empty.shp"),
     "have the expected values": function(records) {
       assert.deepEqual(records, []);
     }
   },
 
   "The records of a shapefile of points": {
-    topic: function() {
-      var callback = this.callback, records = [];
-      shp.readStream("./test/points.shp")
-          .on("error", callback)
-          .on("record", function(record) { records.push(record); })
-          .on("end", function() { callback(null, records); });
-    },
+    topic: readRecords("./test/points.shp"),
     "have the expected values": function(records) {
       assert.deepEqual(records, [
         {shapeType: 1, x: 1, y: 2},
@@ -77,13 +56,7 @@ suite.addBatch({
   },
 
   "The records of a shapefile of multipoints": {
-    topic: function() {
-      var callback = this.callback, records = [];
-      shp.readStream("./test/multipoints.shp")
-          .on("error", callback)
-          .on("record", function(record) { records.push(record); })
-          .on("end", function() { callback(null, records); });
-    },
+    topic: readRecords("./test/multipoints.shp"),
     "have the expected values": function(records) {
       assert.deepEqual(records, [
         {shapeType: 8, box: [1, 2, 9, 10], points: [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]},
@@ -93,13 +66,7 @@ suite.addBatch({
   },
 
   "The records of a shapefile of polylines": {
-    topic: function() {
-      var callback = this.callback, records = [];
-      shp.readStream("./test/polylines.shp")
-          .on("error", callback)
-          .on("record", function(record) { records.push(record); })
-          .on("end", function() { callback(null, records); });
-    },
+    topic: readRecords("./test/polylines.shp"),
     "have the expected values": function(records) {
       assert.deepEqual(records, [
         {shapeType: 3, box: [1, 2, 9, 10], parts: [0], points: [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]},
@@ -109,13 +76,7 @@ suite.addBatch({
   },
 
   "The records of a shapefile of polygons": {
-    topic: function() {
-      var callback = this.callback, records = [];
-      shp.readStream("./test/polygons.shp")
-          .on("error", callback)
-          .on("record", function(record) { records.push(record); })
-          .on("end", function() { callback(null, records); });
-    },
+    topic: readRecords("./test/polygons.shp"),
     "have the expected values": function(records) {
       assert.deepEqual(records, [
         {shapeType: 5, box: [0, 0, 1, 1], parts: [0], points: [[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]},
@@ -126,13 +87,7 @@ suite.addBatch({
   },
 
   "The records of a shapefile with null features": {
-    topic: function() {
-      var callback = this.callback, records = [];
-      shp.readStream("./test/null.shp")
-          .on("error", callback)
-          .on("record", function(record) { records.push(record); })
-          .on("end", function() { callback(null, records); });
-    },
+    topic: readRecords("./test/null.shp"),
     "have the expected values": function(records) {
       assert.deepEqual(records, [
         {shapeType: 1, x: 1, y: 2},
@@ -148,5 +103,37 @@ suite.addBatch({
     }
   }
 });
+
+function readHeader(path) {
+  return function() {
+    var reader = shp.reader(path);
+    queue(1)
+        .defer(reader.readHeader)
+        .defer(reader.close)
+        .await(this.callback);
+  };
+}
+
+function readRecords(path, encoding) {
+  return function() {
+    var reader = shp.reader(path),
+        callback = this.callback;
+    queue(1)
+        .defer(reader.readHeader)
+        .defer(function(callback) {
+          var records = [];
+          (function readRecord() {
+            reader.readRecord(function(error, record) {
+              if (error) return callback(error);
+              if (record === shp.end) return callback(null, records);
+              records.push(record);
+              process.nextTick(readRecord);
+            });
+          })();
+        })
+        .defer(reader.close)
+        .await(function(error, header, records) { callback(error, records); });
+  };
+}
 
 suite.export(module);

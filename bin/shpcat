@@ -1,27 +1,39 @@
 #!/usr/bin/env node
 
-var shp = require("../shp");
+var queue = require("queue-async"),
+    shp = require("../shp");
 
 var reader = shp.reader(process.argv[2] || "/dev/stdin");
 
-reader.readHeader(function(error, header) {
-  if (error) throw error;
-  console.log("header", header);
-  process.nextTick(readRecord);
-});
+queue(1)
+    .defer(readHeader)
+    .defer(readAllRecords)
+    .defer(close)
+    .await(function(error) { if (error) throw error; });
 
-function readRecord() {
-  reader.readRecord(function(error, record) {
-    if (error) throw error;
-    if (record === shp.end) return close();
-    console.log("record", record);
-    process.nextTick(readRecord);
+function readHeader(callback) {
+  reader.readHeader(function(error, header) {
+    if (error) return callback(error);
+    console.log("header", header);
+    callback(null);
   });
 }
 
-function close() {
+function readAllRecords(callback) {
+  (function readRecord() {
+    reader.readRecord(function(error, record) {
+      if (error) return callback(error);
+      if (record === shp.end) return callback(null);
+      console.log("record", record);
+      process.nextTick(readRecord);
+    });
+  })();
+}
+
+function close(callback) {
   reader.close(function(error) {
-    if (error) throw error;
+    if (error) return callback(error);
     console.log("end");
+    callback(null);
   });
 }

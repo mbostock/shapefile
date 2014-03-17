@@ -1,7 +1,8 @@
 process.env.TZ = "America/Los_Angeles";
 
 var vows = require("vows"),
-    assert = require("assert");
+    assert = require("assert"),
+    queue = require("queue-async");
 
 var dbf = require("../dbf");
 
@@ -9,12 +10,7 @@ var suite = vows.describe("dbf");
 
 suite.addBatch({
   "The header of a simple dBASE file": {
-    topic: function() {
-      var callback = this.callback;
-      dbf.readStream("./test/boolean-property.dbf")
-          .on("error", callback)
-          .on("header", function(header) { callback(null, header); });
-    },
+    topic: readHeader("./test/boolean-property.dbf"),
     "has the expected values": function(header) {
       assert.deepEqual(header, {
         count: 9,
@@ -26,12 +22,7 @@ suite.addBatch({
   },
 
   "The header of an empty dBASE file": {
-    topic: function() {
-      var callback = this.callback;
-      dbf.readStream("./test/empty.dbf")
-          .on("error", callback)
-          .on("header", function(header) { callback(null, header); });
-    },
+    topic: readHeader("./test/empty.dbf"),
     "has the expected values": function(header) {
       assert.deepEqual(header, {
         count: 0,
@@ -43,12 +34,7 @@ suite.addBatch({
   },
 
   "The header of a dBASE file with ISO-8859-1 property names": {
-    topic: function() {
-      var callback = this.callback;
-      dbf.readStream("./test/latin1-property.dbf")
-          .on("error", callback)
-          .on("header", function(header) { callback(null, header); });
-    },
+    topic: readHeader("./test/latin1-property.dbf"),
     "has the expected values": function(header) {
       assert.deepEqual(header, {
         count: 1,
@@ -60,13 +46,7 @@ suite.addBatch({
   },
 
   "The records of a dBASE file with ISO-8859-1 property names": {
-    topic: function() {
-      var callback = this.callback, records = [];
-      dbf.readStream("./test/latin1-property.dbf")
-          .on("error", callback)
-          .on("record", function(record) { records.push(record); })
-          .on("end", function() { callback(null, records); });
-    },
+    topic: readRecords("./test/latin1-property.dbf"),
     "have the expected values": function(records) {
       assert.deepEqual(records, [
         ["México"]
@@ -75,12 +55,7 @@ suite.addBatch({
   },
 
   "The header of a dBASE file with UTF-8 property names": {
-    topic: function() {
-      var callback = this.callback;
-      dbf.readStream("./test/utf8-property.dbf", "utf8")
-          .on("error", callback)
-          .on("header", function(header) { callback(null, header); });
-    },
+    topic: readHeader("./test/utf8-property.dbf", "utf8"),
     "has the expected values": function(header) {
       assert.deepEqual(header, {
         count: 1,
@@ -92,13 +67,7 @@ suite.addBatch({
   },
 
   "The records of a dBASE file with UTF-8 property names": {
-    topic: function() {
-      var callback = this.callback, records = [];
-      dbf.readStream("./test/utf8-property.dbf", "utf8")
-          .on("error", callback)
-          .on("record", function(record) { records.push(record); })
-          .on("end", function() { callback(null, records); });
-    },
+    topic: readRecords("./test/utf8-property.dbf", "utf8"),
     "have the expected values": function(records) {
       assert.deepEqual(records, [
         ["ηελλο ςορλδ"]
@@ -107,26 +76,14 @@ suite.addBatch({
   },
 
   "The records of an empty dBASE file": {
-    topic: function() {
-      var callback = this.callback, records = [];
-      dbf.readStream("./test/empty.dbf")
-          .on("error", callback)
-          .on("record", function(record) { records.push(record); })
-          .on("end", function() { callback(null, records); });
-    },
+    topic: readRecords("./test/empty.dbf"),
     "have the expected values": function(records) {
       assert.deepEqual(records, []);
     }
   },
 
   "The records of a simple dBASE file": {
-    topic: function() {
-      var callback = this.callback, records = [];
-      dbf.readStream("./test/boolean-property.dbf")
-          .on("error", callback)
-          .on("record", function(record) { records.push(record); })
-          .on("end", function() { callback(null, records); });
-    },
+    topic: readRecords("./test/boolean-property.dbf"),
     "have the expected values": function(records) {
       assert.deepEqual(records, [
         [null],
@@ -143,13 +100,7 @@ suite.addBatch({
   },
 
   "The records of a dBASE file with a string property": {
-    topic: function() {
-      var callback = this.callback, records = [];
-      dbf.readStream("./test/string-property.dbf")
-          .on("error", callback)
-          .on("record", function(record) { records.push(record); })
-          .on("end", function() { callback(null, records); });
-    },
+    topic: readRecords("./test/string-property.dbf"),
     "have the expected values": function(records) {
       assert.deepEqual(records, [
         [null],
@@ -160,13 +111,7 @@ suite.addBatch({
   },
 
   "The records of a dBASE file with a number property": {
-    topic: function() {
-      var callback = this.callback, records = [];
-      dbf.readStream("./test/number-property.dbf")
-          .on("error", callback)
-          .on("record", function(record) { records.push(record); })
-          .on("end", function() { callback(null, records); });
-    },
+    topic: readRecords("./test/number-property.dbf"),
     "have the expected values": function(records) {
       assert.deepEqual(records, [
         [null],
@@ -177,13 +122,7 @@ suite.addBatch({
   },
 
   "The records of a dBASE file with a date property": {
-    topic: function() {
-      var callback = this.callback, records = [];
-      dbf.readStream("./test/date-property.dbf")
-          .on("error", callback)
-          .on("record", function(record) { records.push(record); })
-          .on("end", function() { callback(null, records); });
-    },
+    topic: readRecords("./test/date-property.dbf"),
     "have the expected values": function(records) {
       assert.deepEqual(records, [
         [new Date(2013, 0, 2)],
@@ -194,13 +133,7 @@ suite.addBatch({
   },
 
   "The records of a dBASE file with multiple properties": {
-    topic: function() {
-      var callback = this.callback, records = [];
-      dbf.readStream("./test/mixed-properties.dbf")
-          .on("error", callback)
-          .on("record", function(record) { records.push(record); })
-          .on("end", function() { callback(null, records); });
-    },
+    topic: readRecords("./test/mixed-properties.dbf"),
     "have the expected values": function(records) {
       assert.deepEqual(records, [
         [null, null],
@@ -210,5 +143,37 @@ suite.addBatch({
     }
   }
 });
+
+function readHeader(path, encoding) {
+  return function() {
+    var reader = dbf.reader(path, encoding);
+    queue(1)
+        .defer(reader.readHeader)
+        .defer(reader.close)
+        .await(this.callback);
+  };
+}
+
+function readRecords(path, encoding) {
+  return function() {
+    var reader = dbf.reader(path, encoding),
+        callback = this.callback;
+    queue(1)
+        .defer(reader.readHeader)
+        .defer(function(callback) {
+          var records = [];
+          (function readRecord() {
+            reader.readRecord(function(error, record) {
+              if (error) return callback(error);
+              if (record === dbf.end) return callback(null, records);
+              records.push(record);
+              process.nextTick(readRecord);
+            });
+          })();
+        })
+        .defer(reader.close)
+        .await(function(error, header, records) { callback(error, records); });
+  };
+}
 
 suite.export(module);

@@ -1,84 +1,43 @@
-var fs = require("fs"),
-    events = require("events");
+var fs = require("fs");
 
-var nextTick = global.setImmediate || process.nextTick;
+exports.reader = function(filename) {
+  var error,
+      fd,
+      position = 0,
+      buffer = new Buffer(40 * 1024),
+      next = noop;
 
-exports.readStream = function(filename) {
-  var emitter = new events.EventEmitter(),
-      read,
-      readAll = false,
-      bytesNeeded,
-      bytesAvailable = 0,
-      bytesChunk = 0,
-      chunkHead,
-      chunkTail;
+  fs.open(filename, "r", function(_error, _fd) {
+    if (_error) error = _error;
+    else fd = _fd;
+    next();
+  });
 
-  fs.createReadStream(filename)
-      .on("data", data)
-      .on("end", end)
-      .on("error", error);
-
-  function maybeRead() {
-    if (bytesAvailable >= bytesNeeded) {
-      var buffer = consume(bytesNeeded);
-      bytesAvailable -= bytesNeeded;
-      bytesNeeded = undefined;
-      read.call(emitter, buffer);
+  return {
+    read: function read(bytes, callback) {
+      if (error) return callback(error), this;
+      if (!fd) return next = function() { read(bytes, callback); }, this;
+      if (buffer.length < bytes) buffer = new Buffer(1 << Math.ceil(Math.log(bytes) / Math.LN2));
+      (function readRemaining(offset) {
+        fs.read(fd, buffer, offset, bytes - offset, position, function(error, bytesRead) {
+          if (error) return fs.close(fd, function() { callback(error); }); // auto close on error
+          if (!bytesRead) return callback(null, end);
+          position += bytesRead;
+          if (offset + bytesRead < bytes) return readRemaining(offset + bytesRead);
+          callback(null, buffer);
+        });
+      })(0);
+      return this;
+    },
+    close: function close(callback) {
+      if (error) return callback(error), this;
+      if (!fd) return next = function() { close(callback); }, this;
+      fs.close(fd, callback);
+      return this;
     }
-  }
-
-  function maybeEnd() {
-    if (bytesAvailable < bytesNeeded) {
-      bytesNeeded = undefined;
-      emitter.emit("end");
-    }
-  }
-
-  function consume(bytes) {
-    if (bytesChunk + bytes <= chunkHead.length) {
-      return chunkHead.slice(bytesChunk, bytesChunk += bytes);
-    }
-
-    var buffer = new Buffer(bytes),
-        bytesCopied = chunkHead.length - bytesChunk;
-
-    chunkHead.copy(buffer, 0, bytesChunk);
-    chunkHead = chunkHead.next;
-    bytesChunk = 0;
-
-    while (bytes - bytesCopied > chunkHead.length) {
-      chunkHead.copy(buffer, bytesCopied);
-      bytesCopied += chunkHead.length;
-      chunkHead = chunkHead.next;
-    }
-
-    chunkHead.copy(buffer, bytesCopied, 0, bytesChunk = bytes - bytesCopied);
-    return buffer;
-  }
-
-  function data(chunk) {
-    if (chunkTail) chunkTail.next = chunk;
-    if (!chunkHead) chunkHead = chunk;
-    chunkTail = chunk;
-    bytesAvailable += chunk.length;
-    maybeRead();
-  }
-
-  function error(e) {
-    emitter.emit("error", e);
-  }
-
-  function end() {
-    readAll = true;
-    nextTick(maybeEnd);
-  }
-
-  emitter.read = function(bytes, callback) {
-    bytesNeeded = bytes;
-    if (readAll && bytesAvailable < bytesNeeded) return void nextTick(maybeEnd);
-    read = callback;
-    nextTick(maybeRead);
   };
-
-  return emitter;
 };
+
+var end = exports.end = {};
+
+function noop() {}

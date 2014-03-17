@@ -2,7 +2,26 @@
 
 var dbf = require("../dbf");
 
-dbf.readStream(process.argv[2] || "/dev/stdin")
-    .on("header", function(header) { console.log("header", header); })
-    .on("record", function(record) { console.log("record", record); })
-    .on("end", function() { console.log("end"); });
+var reader = dbf.reader(process.argv[2] || "/dev/stdin");
+
+reader.readHeader(function(error, header) {
+  if (error) throw error;
+  console.log("header", header);
+  process.nextTick(readRecord);
+});
+
+function readRecord() {
+  reader.readRecord(function(error, record) {
+    if (error) throw error;
+    if (record === dbf.end) return close();
+    console.log("record", record);
+    process.nextTick(readRecord);
+  });
+}
+
+function close() {
+  reader.close(function(error) {
+    if (error) throw error;
+    console.log("end");
+  });
+}

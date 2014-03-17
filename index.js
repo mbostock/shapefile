@@ -1,16 +1,15 @@
-var events = require("events");
-
 var shp = require("./shp"),
-    dbf = require("./dbf"),
-    list = require("./list");
+    dbf = require("./dbf");
 
 exports.version = require("./package.json").version;
 
-exports.readStream = function(filename, options) {
-  var emitter = new events.EventEmitter(),
-      convert,
+exports.reader = function(filename, options) {
+  var convertProperties,
+      convertGeometry,
       encoding = null,
-      ignoreProperties = false;
+      ignoreProperties = false,
+      dbfReader,
+      shpReader;
 
   if (typeof options === "string") options = {encoding: options};
 
@@ -20,78 +19,84 @@ exports.readStream = function(filename, options) {
 
   if (/\.shp$/.test(filename)) filename = filename.substring(0, filename.length - 4);
 
-  if (ignoreProperties) {
-    readGeometry(emptyNextProperties, emptyEnd);
-  } else {
-    var propertiesQueue = list(),
-        callbackQueue = list(),
-        endCallback,
-        ended;
+  if (!ignoreProperties) dbfReader = dbf.reader(filename + ".dbf", encoding);
+  shpReader = shp.reader(filename + ".shp");
 
-    readProperties(filename, encoding, function(error, properties) {
-      if (error) return void emitter.emit("error", error);
-      if (!callbackQueue.empty()) return void callbackQueue.pop()(null, properties);
-      propertiesQueue.push(properties);
-    }, function() {
-      if (endCallback) return void endCallback(null);
-      ended = true;
+  function readDbfHeader(callback) {
+    dbfReader.readHeader(function(error, header) {
+      if (header === end) error = new Error("unexpected EOF");
+      if (error) return callback(error);
+      convertProperties = new Function("d", "return {"
+          + header.fields.map(function(field, i) { return JSON.stringify(field.name) + ":d[" + i + "]"; })
+          + "};");
+      readShpHeader(callback);
     });
-
-    readGeometry(function(callback) {
-      if (!propertiesQueue.empty()) return void callback(null, propertiesQueue.pop());
-      callbackQueue.push(callback);
-    }, function(callback) {
-      if (ended) return void callback(null);
-      endCallback = callback;
-    });
+    return this;
   }
 
-  function readGeometry(readNextProperties, readEnd) {
-    shp.readStream(filename + ".shp")
-        .on("header", function(header) {
-          convert = convertGeometry[header.shapeType];
-          emitter.emit("header", {bbox: header.box});
-        })
-        .on("record", function(record) {
-          readNextProperties(function(error, properties) {
-            if (error) return void emitter.emit("error", error);
-            emitter.emit("feature", {
-              type: "Feature",
-              properties: properties,
-              geometry: record == null ? null : convert(record)
-            });
-          });
-        })
-        .on("error", function(error) {
-          emitter.emit("error", error);
-        })
-        .on("end", function() {
-          readEnd(function(error) {
-            if (error) return void emitter.emit("error", error);
-            emitter.emit("end");
-          });
+  function readShpHeader(callback) {
+    shpReader.readHeader(function(error, header) {
+      if (header === end) error = new Error("unexpected EOF");
+      if (error) return callback(error);
+      convertGeometry = convertGeometryTypes[header.shapeType];
+      callback(null, {bbox: header.box});
+    });
+    return this;
+  }
+
+  function readDbfRecord(callback) {
+    dbfReader.readRecord(function(error, dbfRecord) {
+      if (dbfRecord === end) return callback(null, end);
+      if (error) return callback(error);
+      shpReader.readRecord(function(error, shpRecord) {
+        if (shpRecord === end) error = new Error("unexpected EOF");
+        if (error) return callback(error);
+        callback(null, {
+          type: "Feature",
+          properties: convertProperties(dbfRecord),
+          geometry: convertGeometry(shpRecord)
         });
+      });
+    });
+    return this;
   }
 
-  return emitter;
+  function readShpRecord(callback) {
+    shpReader.readRecord(function(error, shpRecord) {
+      if (shpRecord === end) return callback(null, end);
+      if (error) return callback(error);
+      callback(null, {
+        type: "Feature",
+        properties: {},
+        geometry: convertGeometry(shpRecord)
+      });
+    });
+    return this;
+  }
+
+  function closeDbf(callback) {
+    dbfReader.close(function(error) {
+      if (error) return callback(error);
+      closeShp(callback);
+    });
+    return this;
+  }
+
+  function closeShp(callback) {
+    shpReader.close(callback);
+    return this;
+  }
+
+  return {
+    readHeader: dbfReader ? readDbfHeader : readShpHeader,
+    readRecord: dbfReader ? readDbfRecord : readShpRecord,
+    close: dbfReader ? closeDbf : closeShp
+  };
 };
 
-function readProperties(filename, encoding, propertyCallback, endCallback) {
-  var properties = [],
-      convert;
+var end = exports.end = shp.end;
 
-  dbf.readStream(filename + ".dbf", encoding)
-      .on("header", function(header) {
-        convert = new Function("d", "return {"
-            + header.fields.map(function(field, i) { return JSON.stringify(field.name) + ":d[" + i + "]"; })
-            + "};");
-      })
-      .on("record", function(record) { propertyCallback(null, convert(record)); })
-      .on("error", propertyCallback)
-      .on("end", endCallback);
-}
-
-var convertGeometry = {
+var convertGeometryTypes = {
   1: convertPoint,
   3: convertPolyLine,
   5: convertPolygon,
@@ -102,12 +107,8 @@ var convertGeometry = {
   18: convertMultiPoint // MultiPointZ
 };
 
-function emptyNextProperties(callback) {
+function readEmptyNextProperties(callback) {
   callback(null, {});
-}
-
-function emptyEnd(callback) {
-  callback(null);
 }
 
 function convertPoint(record) {

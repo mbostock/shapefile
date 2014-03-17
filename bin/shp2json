@@ -43,18 +43,31 @@ var out = argv.o === "/dev/stdout"
 
 var previous;
 
-shapefile.readStream(argv._[0], {encoding: argv["property-encoding"], "ignore-properties": !!argv["ignore-properties"]})
-    .on("header", function(header) {
-      out.write("{\"type\":\"FeatureCollection\",\"bbox\":");
-      out.write(JSON.stringify(header.bbox));
-      out.write(",\"features\":[\n");
-    })
-    .on("feature", function(feature) {
-      if (previous) out.write(",\n");
-      out.write(JSON.stringify(feature));
-      previous = true;
-    })
-    .on("end", function() {
-      out.write("]}\n");
-      if (out !== process.stdout) out.end();
-    });
+var reader = shapefile.reader(argv._[0], {encoding: argv["property-encoding"], "ignore-properties": !!argv["ignore-properties"]});
+
+reader.readHeader(function(error, header) {
+  if (error) throw error;
+  out.write("{\"type\":\"FeatureCollection\",\"bbox\":");
+  out.write(JSON.stringify(header.bbox));
+  out.write(",\"features\":[\n");
+  process.nextTick(readRecord);
+});
+
+function readRecord() {
+  reader.readRecord(function(error, record) {
+    if (error) throw error;
+    if (record === shapefile.end) return close();
+    if (previous) out.write(",\n");
+    out.write(JSON.stringify(record));
+    previous = true;
+    process.nextTick(readRecord);
+  });
+}
+
+function close() {
+  reader.close(function(error) {
+    if (error) throw error;
+    out.write("]}\n");
+    if (out !== process.stdout) out.end();
+  });
+}

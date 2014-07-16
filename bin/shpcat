@@ -1,39 +1,22 @@
 #!/usr/bin/env node
 
-var queue = require("queue-async"),
-    shp = require("../shp");
+var rw = require("rw"),
+    shpParser = require("../lib/shapefile/shp-parser");
 
-var reader = shp.reader(process.argv[2] || "/dev/stdin");
+var reader = rw.fileReader(process.argv[2] || "/dev/stdin"),
+    parser = shpParser();
 
-queue(1)
-    .defer(readHeader)
-    .defer(readAllRecords)
-    .defer(close)
-    .await(function(error) { if (error) throw error; });
+reader.fill(function flow(error) {
+  if (error) throw error;
+  var data = reader.read(),
+      record;
 
-function readHeader(callback) {
-  reader.readHeader(function(error, header) {
-    if (error) return callback(error);
-    console.log("header", header);
-    callback(null);
-  });
-}
+  if (data) parser.push(data);
 
-function readAllRecords(callback) {
-  (function readRecord() {
-    reader.readRecord(function(error, record) {
-      if (error) return callback(error);
-      if (record === shp.end) return callback(null);
-      console.log("record", record);
-      process.nextTick(readRecord);
-    });
-  })();
-}
+  while ((record = parser.pop()) != null) {
+    console.log(JSON.stringify(record));
+  }
 
-function close(callback) {
-  reader.close(function(error) {
-    if (error) return callback(error);
-    console.log("end");
-    callback(null);
-  });
-}
+  if (reader.ended) return;
+  reader.fill(flow);
+});

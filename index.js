@@ -1,6 +1,5 @@
 var shp = require("./shp"),
-    dbf = require("./dbf"),
-    queue = require("queue-async");
+    dbf = require("./dbf");
 
 exports.version = require("./package.json").version;
 exports.read = read;

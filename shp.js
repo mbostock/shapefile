@@ -1,5 +1,4 @@
-var file = require("./file"),
-    queue = require("queue-async");
+var file = require("./file");
 
 exports.read = require("./read")(reader);
 exports.reader = reader;

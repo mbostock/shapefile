@@ -1,6 +1,7 @@
 var file = require("./file"),
     iconv = require("iconv-lite");
 
+var end = exports.end = require("./end");
 exports.read = require("./read")(reader);
 exports.reader = reader;
 
@@ -63,8 +64,6 @@ function reader(filename, encoding) {
     close: close
   };
 }
-
-var end = exports.end = file.end;
 
 var utf8 = /^utf[-]?8$/i;
 

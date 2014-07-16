@@ -1,5 +1,7 @@
 var fs = require("fs");
 
+var end = exports.end = require("./end");
+
 exports.reader = function(filename) {
   var error,
       fd,
@@ -37,7 +39,5 @@ exports.reader = function(filename) {
     }
   };
 };
-
-var end = exports.end = {};
 
 function noop() {}

@@ -1,6 +1,7 @@
 var shp = require("./shp"),
     dbf = require("./dbf");
 
+var end = exports.end = require("./end");
 exports.version = require("./package.json").version;
 exports.read = read;
 exports.reader = reader;
@@ -113,8 +114,6 @@ function reader(filename, options) {
     close: closeShp
   };
 }
-
-var end = exports.end = shp.end;
 
 var convertGeometryTypes = {
   1: convertPoint,

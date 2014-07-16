@@ -1,6 +1,6 @@
 var queue = require("queue-async");
 
-var file = require("./file");
+var end = require("./end");
 
 module.exports = function(reader) {
   return function() {
@@ -15,7 +15,7 @@ module.exports = function(reader) {
           (function readNextRecord() {
             r.readRecord(function(error, record) {
               if (error) return callback(error);
-              if (record === file.end) return callback(null, records);
+              if (record === end) return callback(null, records);
               records.push(record);
               process.nextTick(readNextRecord);
             });

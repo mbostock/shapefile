@@ -1,16 +1,21 @@
-var file = require("./file");
+var rw = require("rw");
 
+var end = exports.end = require("./end");
 exports.read = require("./read")(reader);
 exports.reader = reader;
 
 function reader(filename) {
-  var fileReader = file.reader(filename),
+  var fileReader = rw.fileReader(filename),
       shapeType;
 
   function readHeader(callback) {
-    fileReader.read(100, function(error, fileHeader) {
-      if (fileHeader === end) error = new Error("unexpected EOF");
+    fileReader.fill(function flow(error) {
       if (error) return void callback(error);
+      var fileHeader = fileReader.read(100);
+      if (fileHeader == null) {
+        if (fileReader.ended) return void callback(new Error("unexpected EOF"));
+        return void fileReader.fill(flow);
+      }
       callback(null, {
         fileCode: fileHeader.readInt32BE(0), // TODO verify 9994
         version: fileHeader.readInt32LE(28), // TODO verify 1000
@@ -28,23 +33,35 @@ function reader(filename) {
   function readRecord(callback) {
     if (!shapeType) return callback(new Error("must read header before reading records")), this;
     if (!(shapeType in readShape)) return callback(new Error("unsupported shape type: " + shapeType)), this;
-    var readShapeType = readShape[shapeType];
-    fileReader.read(8, function readRecordHeader(error, recordHeader) {
-      if (recordHeader === end) return callback(null, end);
-      if (error) return void callback(error);
+    var readShapeType = readShape[shapeType],
+        recordHeader,
+        record;
+
+    (function flow(error) {
+      if (recordHeader == null) {
+        recordHeader = fileReader.read(8);
+        if (recordHeader == null) {
+          if (fileReader.ended) return void callback(null, end);
+          return void fileReader.fill(flow);
+        }
+      }
+
       // TODO verify var recordNumber = recordHeader.readInt32BE(0);
-      fileReader.read(recordHeader.readInt32BE(4) * 2, function readRecord(error, record) {
-        if (record === end) error = new Error("unexpected EOF");
-        if (error) return void callback(error);
-        var shapeType = record.readInt32LE(0);
-        callback(null, shapeType ? readShapeType(record) : null);
-      });
-    });
+      record = fileReader.read(recordHeader.readInt32BE(4) * 2);
+      if (record == null) {
+        if (fileReader.ended) return void callback(new Error("unexpected EOF"));
+        return void fileReader.fill(flow);
+      }
+      var shapeType = record.readInt32LE(0);
+      callback(null, shapeType ? readShapeType(record) : null);
+    })();
+
     return this;
   }
 
   function close(callback) {
-    fileReader.close(callback);
+    if (fileReader.ended) return void process.nextTick(callback.bind(null, null));
+    fileReader.end(callback);
     return this;
   }
 
@@ -54,8 +71,6 @@ function reader(filename) {
     close: close
   };
 }
-
-var end = exports.end = file.end;
 
 var readShape = {
   0: readNull,

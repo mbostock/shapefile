@@ -26,6 +26,7 @@ function addAll(testConversion) {
 }
 addAll(testConversion);
 addAll(testConversionStream);
+addAll(testConversionStreamOut);
 function fixActualProperties(feature) {
   for (var key in feature.properties) {
     if (feature.properties[key] == null) {
@@ -73,6 +74,17 @@ function testConversionStream(name, options) {
     }
   };
 }
+function testConversionStreamOut(name, options) {
+  return {
+    topic: readCollectionStreamOut(name, options),
+    "has the expected features": function(actual) {
+      var expected = JSON.parse(fs.readFileSync("./test/" + name + ".json", "utf-8"));
+      actual.features.forEach(fixActualProperties);
+      expected.features.forEach(fixExpectedProperties);
+      assert.deepEqual(actual, expected);
+    }
+  };
+}
 function readCollection(name, options) {
   return function() {
     shapefile.read("./test/" + name + ".shp", options, this.callback);
@@ -90,6 +102,29 @@ function readCollectionStream(name, options) {
       opts.dbf = fs.createReadStream("./test/" + name + ".dbf");
     }
     shapefile.read(opts, this.callback);
+  };
+}
+function readCollectionStreamOut(name, options) {
+  return function() {
+    var self = this;
+    var out = [];
+    var bbox;
+    shapefile.reader("./test/" + name + ".shp", options)
+      .createReadStream()
+      .on('error', self.callback)
+      .on('header', function (headers) {
+        bbox = headers.bbox;
+      })
+      .on('end', function () {
+        self.callback(null, {
+          type: 'FeatureCollection',
+          features: out,
+          bbox: bbox
+        });
+      })
+      .on('data', function (d) {
+        out.push(d);
+      });
   };
 }
 suite.export(module);

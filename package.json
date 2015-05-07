@@ -17,6 +17,7 @@
   "main": "./index.js",
   "dependencies": {
     "iconv-lite": "0.2",
+    "noms": "0.0.0",
     "optimist": "0.3",
     "queue-async": "1"
   },

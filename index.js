@@ -1,5 +1,6 @@
 var shp = require("./shp"),
-    dbf = require("./dbf");
+    dbf = require("./dbf"),
+    noms = require("noms");
 
 exports.version = require("./package.json").version;
 exports.read = read;
@@ -118,15 +119,47 @@ function reader(filename, options) {
   return dbfReader ? {
     readHeader: readHeader,
     readRecord: readRecord,
-    close: close
+    close: close,
+    createReadStream: createReadStream
   } : {
     readHeader: readShpHeader,
     readRecord: readShpRecord,
-    close: closeShp
+    close: closeShp,
+    createReadStream: createReadStream
   };
 }
 
 var end = exports.end = shp.end;
+
+function createReadStream() {
+  var readHeader = this.readHeader;
+  var readRecord = this.readRecord;
+  return noms.obj(function (done) {
+    var self = this;
+    readRecord(function (err, record) {
+      if (err) {
+        return done(err);
+      }
+      if (record === end) {
+        self.push(null);
+      } else {
+        self.push(record);
+      }
+      done();
+    });
+  }, function (done) {
+    var self = this;
+    readHeader(function (err, header) {
+      if (err) {
+        return done(err);
+      } else {
+        self.emit('header', header);
+        done();
+      }
+    });
+  });
+  return out;
+}
 
 var convertGeometryTypes = {
   1: convertPoint,

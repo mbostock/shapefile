@@ -1,5 +1,6 @@
 var vows = require("vows"),
-    assert = require("assert");
+    assert = require("assert"),
+    fs = require('fs');
 
 var shp = require("../shp");
 
@@ -100,6 +101,15 @@ suite.addBatch({
         {shapeType: 1, x: 17, y: 18}
       ]);
     }
+  },
+  "The records of a shapefile of multipoints from a stream": {
+    topic: readRecordsFromStream("./test/multipoints.shp"),
+    "have the expected values": function(records) {
+      assert.deepEqual(records, [
+        {shapeType: 8, box: [1, 2, 9, 10], points: [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]},
+        {shapeType: 8, box: [11, 12, 19, 20], points: [[11, 12], [13, 14], [15, 16], [17, 18], [19, 20]]}
+      ]);
+    }
   }
 });
 
@@ -116,6 +126,15 @@ function readRecords(path, encoding) {
   return function() {
     var callback = this.callback;
     shp.read(path, encoding, function(error, header, records) {
+      callback(error, records);
+    });
+  };
+}
+
+function readRecordsFromStream(path, encoding) {
+  return function() {
+    var callback = this.callback;
+    shp.read(fs.createReadStream(path), encoding, function(error, header, records) {
       callback(error, records);
     });
   };

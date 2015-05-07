@@ -25,19 +25,31 @@ function reader(filename, options) {
       encoding = null,
       ignoreProperties = false,
       dbfReader,
-      shpReader;
+      shpReader,
+      dbfStream,
+      shpStream;
 
   if (typeof options === "string") options = {encoding: options};
 
+  if (typeof filename === 'object') options = filename, filename = null;
+
   if (options)
     "encoding" in options && (encoding = options["encoding"]),
-    "ignore-properties" in options && (ignoreProperties = !!options["ignore-properties"]);
+    "ignore-properties" in options && (ignoreProperties = !!options["ignore-properties"]),
+    "dbf" in options && (dbfStream = options.dbf),
+    "shp" in options && (shpStream = options.shp);
 
-  if (/\.shp$/.test(filename)) filename = filename.substring(0, filename.length - 4);
+  if (filename) {
+    if (/\.shp$/.test(filename)) filename = filename.substring(0, filename.length - 4);
 
-  if (!ignoreProperties) dbfReader = dbf.reader(filename + ".dbf", encoding);
-  shpReader = shp.reader(filename + ".shp");
-
+    if (!ignoreProperties) dbfReader = dbf.reader(filename + ".dbf", encoding);
+    shpReader = shp.reader(filename + ".shp");
+  } else {
+    shpReader = shp.reader(shpStream);
+    if (dbfStream) {
+      dbfReader = dbf.reader(dbfStream, encoding);
+    }
+  }
   function readHeader(callback) {
     dbfReader.readHeader(function(error, header) {
       if (header === end) error = new Error("unexpected EOF");

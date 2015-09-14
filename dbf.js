@@ -8,7 +8,8 @@ function reader(filename, encoding) {
   var fileReader = file.reader(filename),
       decode = utf8.test(encoding) ? decodeUtf8 : decoder(encoding || "ISO-8859-1"),
       fieldDescriptors = [],
-      recordBytes;
+      recordBytes,
+      rowCount;
 
   function readHeader(callback) {
     fileReader.read(32, function(error, fileHeader) {
@@ -28,6 +29,7 @@ function reader(filename, encoding) {
           });
           n += 32;
         }
+        rowCount = recordCount;
         callback(null, {
           version: fileType,
           date: fileDate,
@@ -41,7 +43,11 @@ function reader(filename, encoding) {
 
   function readRecord(callback) {
     if (!recordBytes) return callback(new Error("must read header before reading records")), this;
+    if (!rowCount) {
+       return callback(null, end), this;
+    }
     fileReader.read(recordBytes, function readRecord(error, record) {
+      rowCount--;
       if (record === end) return callback(null, end);
       if (error) return void callback(error);
       var i = 1;

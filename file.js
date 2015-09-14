@@ -1,38 +1,66 @@
 var fs = require("fs");
 
 exports.reader = function(filename) {
-  var error,
-      fd,
-      position = 0,
-      buffer = new Buffer(40 * 1024),
-      next = noop;
-
-  fs.open(filename, "r", function(_error, _fd) {
-    if (_error) error = _error;
-    else fd = _fd;
-    next();
+  var stream;
+  if (typeof filename === 'string') {
+    stream = fs.createReadStream(filename);
+  } else {
+    stream = filename;
+  }
+  var ended = false;
+  var error = false;
+  var reading = false;
+  var waiting = false;
+  stream.on('error', function (err) {
+    error = err;
+    if (waiting) {
+      var temp = waiting;
+      waiting = false;
+      temp[1](err);
+    }
+    waiting = false;
+  }).on('end', function () {
+    ended = true;
+    if (waiting) {
+      var temp = waiting;
+      waiting = false;
+      temp[1](null, end);
+    }
+  }).on('readable', function () {
+    reading = true;
+    if (waiting) {
+      var temp = waiting;
+      waiting = false;
+      var out = stream.read(temp[0]);
+      if (out) {
+        temp[1](null, out);
+      } else {
+        waiting = temp;
+        reading = false;
+      }
+    }
   });
-
   return {
     read: function read(bytes, callback) {
       if (error) return callback(error), this;
-      if (!fd) return next = function() { read(bytes, callback); }, this;
-      if (buffer.length < bytes) buffer = new Buffer(1 << Math.ceil(Math.log(bytes) / Math.LN2));
-      (function readRemaining(offset) {
-        fs.read(fd, buffer, offset, bytes - offset, position, function(error, bytesRead) {
-          if (error) return fs.close(fd, function() { callback(error); }); // auto close on error
-          if (!bytesRead) return callback(null, end);
-          position += bytesRead;
-          if (offset + bytesRead < bytes) return readRemaining(offset + bytesRead);
-          callback(null, buffer);
-        });
-      })(0);
+      if (ended) return callback(null, end), this;
+      if (reading) {
+        var out = stream.read(bytes);
+        if (out) {
+          callback(null, out);
+          return this;
+        }
+        reading = false;
+      }
+      waiting = [bytes, callback];
+
       return this;
     },
     close: function close(callback) {
+      ended = true;
+      stream.removeAllListeners();
       if (error) return callback(error), this;
-      if (!fd) return next = function() { close(callback); }, this;
-      fs.close(fd, callback);
+      process.nextTick(callback);
       return this;
     }
   };

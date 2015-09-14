@@ -158,7 +158,6 @@ function createReadStream() {
       }
     });
   });
-  return out;
 }
 
 var convertGeometryTypes = {

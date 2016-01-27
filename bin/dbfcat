@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var queue = require("queue-async"),
+var queue = require("d3-queue"),
     dbf = require("../dbf");
 
 var reader = dbf.reader(process.argv[2] || "/dev/stdin");

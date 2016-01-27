@@ -2,7 +2,7 @@
 
 var fs = require("fs"),
     optimist = require("optimist"),
-    queue = require("queue-async"),
+    queue = require("d3-queue"),
     shapefile = require("../");
 
 var argv = optimist

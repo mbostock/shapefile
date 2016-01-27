@@ -1,34 +1,36 @@
 {
   "name": "shapefile",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "An implementation of the shapefile (.shp) spatial data format.",
   "keywords": [
     "geojson",
     "shapefile"
   ],
+  "homepage": "https://github.com/mbostock/shapefile",
+  "license": "BSD-3-Clause",
   "author": {
     "name": "Mike Bostock",
     "url": "http://bost.ocks.org/mike"
   },
+  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "http://github.com/mbostock/shapefile.git"
-  },
-  "main": "./index.js",
-  "dependencies": {
-    "iconv-lite": "0.2",
-    "optimist": "0.3",
-    "queue-async": "1"
-  },
-  "devDependencies": {
-    "vows": "0.7"
-  },
-  "scripts": {
-    "test": "./node_modules/.bin/vows && echo"
   },
   "bin": {
     "dbfcat": "./bin/dbfcat",
     "shpcat": "./bin/shpcat",
     "shp2json": "./bin/shp2json"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/vows && echo"
+  },
+  "dependencies": {
+    "iconv-lite": "0.2",
+    "optimist": "0.3",
+    "d3-queue": "1"
+  },
+  "devDependencies": {
+    "vows": "0.7"
   }
 }

@@ -5,7 +5,7 @@ exports.reader = reader;
 
 function reader(filename) {
   var fileReader = file.reader(filename),
-      shapeType;
+    shapeType;
 
   function readHeader(callback) {
     fileReader.read(100, function(error, fileHeader) {
@@ -16,10 +16,10 @@ function reader(filename) {
         version: fileHeader.readInt32LE(28), // TODO verify 1000
         shapeType: shapeType = fileHeader.readInt32LE(32),
         box: [fileHeader.readDoubleLE(36), fileHeader.readDoubleLE(44), fileHeader.readDoubleLE(52), fileHeader.readDoubleLE(60)]
-        // TODO zMin: fileHeader.readDoubleLE(68)
-        // TODO zMax: fileHeader.readDoubleLE(76)
-        // TODO mMin: fileHeader.readDoubleLE(84)
-        // TODO mMax: fileHeader.readDoubleLE(92)
+          // TODO zMin: fileHeader.readDoubleLE(68)
+          // TODO zMax: fileHeader.readDoubleLE(76)
+          // TODO mMin: fileHeader.readDoubleLE(84)
+          // TODO mMax: fileHeader.readDoubleLE(92)
       });
     });
     return this;
@@ -66,12 +66,12 @@ var readShape = {
   11: readPoint, // PointZ
   13: readPoly(3), // PolyLineZ
   15: readPoly(5), // PolygonZ
-  18: readMultiPoint // MultiPointZ
-  // 21: TODO readPointM
-  // 23: TODO readPolyLineM
-  // 25: TODO readPolygonM
-  // 28: TODO readMultiPointM
-  // 31: TODO readMultiPatch
+  18: readMultiPoint, // MultiPointZ
+  21: readPointM, // Measured Point
+  23: readPolyM(23), // Measured PolyLine
+  25: readPolyM(25), // Measured Polygon
+  28: readMultiPointM // Measured MultiPoint
+    // 31: TODO readMultiPatch
 };
 
 function readNull() {
@@ -80,7 +80,7 @@ function readNull() {
 
 function readPoint(record) {
   var x = record.readDoubleLE(4),
-      y = record.readDoubleLE(12);
+    y = record.readDoubleLE(12);
   return {
     shapeType: 1,
     x: x,
@@ -88,36 +88,115 @@ function readPoint(record) {
   };
 }
 
+function readPointM(record) {
+  var x = record.readDoubleLE(4),
+    y = record.readDoubleLE(12),
+    m = record.readDoubleLE(20);
+  return {
+    shapeType: 21,
+    x: x,
+    y: y,
+    m: m
+  };
+}
+
+function readMeasures(record, numPoints, offset) {
+  var mrange = new Array(2),
+    measures = new Array(numPoints);
+
+  mrange[0] = record.readDoubleLE(offset);
+  mrange[1] = record.readDoubleLE(offset + 8);
+  offset += 16;
+  for (j = 0; j < numPoints; ++j, offset += 8) {
+    measures[j] = record.readDoubleLE(offset);
+  }
+
+  return {
+    mrange: mrange,
+    measures: measures
+  };
+}
+
+function readInitialPoly(record) {
+  var box = [record.readDoubleLE(4), record.readDoubleLE(12), record.readDoubleLE(20), record.readDoubleLE(28)],
+    numParts = record.readInt32LE(36),
+    numPoints = record.readInt32LE(40),
+    parts = new Array(numParts),
+    points = new Array(numPoints),
+    i = 44,
+    j;
+  for (j = 0; j < numParts; ++j, i += 4) parts[j] = record.readInt32LE(i);
+  for (j = 0; j < numPoints; ++j, i += 16) points[j] = [record.readDoubleLE(i), record.readDoubleLE(i + 8)];
+
+  return {
+    box: box,
+    parts: parts,
+    points: points,
+    offset: i
+  };
+}
+
 function readPoly(shapeType) {
   return function(record) {
-    var box = [record.readDoubleLE(4), record.readDoubleLE(12), record.readDoubleLE(20), record.readDoubleLE(28)],
-        numParts = record.readInt32LE(36),
-        numPoints = record.readInt32LE(40),
-        parts = new Array(numParts),
-        points = new Array(numPoints),
-        i = 44,
-        j;
-    for (j = 0; j < numParts; ++j, i += 4) parts[j] = record.readInt32LE(i);
-    for (j = 0; j < numPoints; ++j, i += 16) points[j] = [record.readDoubleLE(i), record.readDoubleLE(i + 8)];
+    var poly = readInitialPoly(record);
     return {
       shapeType: shapeType,
-      box: box,
-      parts: parts,
-      points: points
+      box: poly.box,
+      parts: poly.parts,
+      points: poly.points
     };
   };
 }
 
-function readMultiPoint(record) {
+function readPolyM(shapeType) {
+  return function(record) {
+    var poly = readInitialPoly(record);
+    var measure = readMeasures(record, poly.points.length, poly.offset);
+
+    return {
+      shapeType: shapeType,
+      box: poly.box,
+      parts: poly.parts,
+      points: poly.points,
+      mrange: measure.mrange,
+      measures: measure.measures
+    };
+  };
+}
+
+function readInitialMultiPoint(record) {
   var box = [record.readDoubleLE(4), record.readDoubleLE(12), record.readDoubleLE(20), record.readDoubleLE(28)],
-      numPoints = record.readInt32LE(36),
-      points = new Array(numPoints),
-      i = 40,
-      j;
-  for (j = 0; j < numPoints; ++j, i += 16) points[j] = [record.readDoubleLE(i), record.readDoubleLE(i + 8)];
+    numPoints = record.readInt32LE(36),
+    points = new Array(numPoints),
+    i = 40,
+    j;
+  for (j = 0; j < numPoints; ++j, i += 16) {
+    points[j] = [record.readDoubleLE(i), record.readDoubleLE(i + 8)];
+  }
+  return {
+    box: box,
+    points: points,
+    offset: i
+  };
+}
+
+function readMultiPoint(record) {
+  var multiPoint = readInitialMultiPoint(record);
   return {
     shapeType: 8,
-    box: box,
-    points: points
+    box: multiPoint.box,
+    points: multiPoint.points
+  };
+}
+
+function readMultiPointM(record) {
+  var multiPoint = readInitialMultiPoint(record);
+  var measures = readMeasures(record, multiPoint.points.length, multiPoint.offset);
+  return {
+    shapeType: 28,
+    box: multiPoint.box,
+    points: multiPoint.points,
+    measures: measures.measures,
+    mrange: measures.mrange
   };
 }

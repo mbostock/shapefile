@@ -100,7 +100,73 @@ suite.addBatch({
         {shapeType: 1, x: 17, y: 18}
       ]);
     }
-  }
+  },
+
+  "The records of a shapefile of measured points": {
+    topic: readRecords("./test/pointm.shp"),
+    "have the expected values": function(records) {
+      assert.deepEqual(records, [
+        {shapeType: 21, x: 10, y: 10, m: 100},
+        {shapeType: 21, x: 5, y: 5, m: 50},
+        {shapeType: 21, x: 0, y: 10, m: 75},
+      ]);
+    }
+  },
+
+  "The records of a shapefile of measured polylines": {
+    topic: readRecords("./test/polylinem.shp"),
+    "have the expected values": function(records) {
+      assert.deepEqual(records, [
+        {
+          shapeType: 23,
+          box: [0, 0, 10, 10],
+          parts: [0],
+          points: [[0, 0], [5, 5], [10, 10]],
+          measures: [0, 5, 10],
+          mrange: [0, 10],
+        },
+        {
+          shapeType: 23,
+          box: [15, 15, 25, 25],
+          parts: [0],
+          points: [[15, 15], [20, 20], [25, 25]],
+          measures: [15, 20, 25],
+          mrange: [15, 25],
+        },
+      ]);
+    }
+  },
+
+  "The records of a shapefile of measured polygons": {
+    topic: readRecords("./test/polygonm.shp"),
+    "have the expected values": function(records) {
+      assert.deepEqual(records, [
+        {
+          shapeType: 25,
+          box: [0, 0, 5, 5],
+          parts: [0],
+          points: [[0, 0], [0, 5], [5, 5], [5, 0], [0, 0]],
+          measures: [0, 5, 10, 15, 0],
+          mrange: [0, 15],
+        }
+      ]);
+    }
+  },
+
+  "The records of a shapefile of measured multipoints": {
+    topic: readRecords("./test/multipointm.shp"),
+    "have the expected values": function(records) {
+      assert.deepEqual(records, [
+        {
+          shapeType: 28,
+          box: [0, 5, 10, 10],
+          points: [[10, 10], [5, 5], [0, 10]],
+          measures: [100, 50, 75],
+          mrange: [50, 100],
+        }
+      ]);
+    }
+  },
 });
 
 function readHeader(path, encoding) {

@@ -63,14 +63,14 @@ var readShape = {
   3: readPoly(3), // PolyLine
   5: readPoly(5), // Polygon
   8: readMultiPoint,
-  11: readPoint, // PointZ
+  11: readPointZ, // PointZ
   13: readPoly(3), // PolyLineZ
   15: readPoly(5), // PolygonZ
-  18: readMultiPoint // MultiPointZ
-  // 21: TODO readPointM
+  18: readMultiPointZ, // MultiPointZ
+  21: readPointM, // PointM
   // 23: TODO readPolyLineM
   // 25: TODO readPolygonM
-  // 28: TODO readMultiPointM
+  28: readMultiPointM // MultiPointM
   // 31: TODO readMultiPatch
 };
 
@@ -85,6 +85,32 @@ function readPoint(record) {
     shapeType: 1,
     x: x,
     y: y
+  };
+}
+
+function readPointZ(record) {
+  var x = record.readDoubleLE(4),
+      y = record.readDoubleLE(12),
+      z = record.readDoubleLE(20),
+      m = record.readDoubleLE(28);
+  return {
+    shapeType: 11,
+    x: x,
+    y: y,
+    z: z,
+    m: m
+  };
+}
+
+function readPointM(record) {
+  var x = record.readDoubleLE(4),
+      y = record.readDoubleLE(12),
+      m = record.readDoubleLE(20);
+  return {
+    shapeType: 21,
+    x: x,
+    y: y,
+    m: m
   };
 }
 
@@ -119,5 +145,60 @@ function readMultiPoint(record) {
     shapeType: 8,
     box: box,
     points: points
+  };
+}
+
+function readMultiPointM(record) {
+  var box = [record.readDoubleLE(4), record.readDoubleLE(12), record.readDoubleLE(20), record.readDoubleLE(28)],
+      numPoints = record.readInt32LE(36),
+      points = new Array(numPoints),
+      i = 40,
+      j,
+      mMin = record.readDoubleLE(40+(16*numPoints)),
+      mMax = record.readDoubleLE(40+(16*numPoints)+8),
+      x = (40+(16*numPoints)+16),
+      measures = new Array(numPoints);
+  for (j = 0; j < numPoints; ++j, i += 16, x += 8) {
+    points[j] = [record.readDoubleLE(i), record.readDoubleLE(i + 8)];
+    measures[j] = record.readDoubleLE(x);
+  }
+  
+  return {
+    shapeType: 28,
+    box: box,
+    points: points,
+    mRange: [mMin,mMax],
+    measures: measures
+  };
+}
+
+function readMultiPointZ(record) {
+  var box = [record.readDoubleLE(4), record.readDoubleLE(12), record.readDoubleLE(20), record.readDoubleLE(28)],
+      numPoints = record.readInt32LE(36),
+      points = new Array(numPoints),
+      i = 40,
+      j,
+      mMin = record.readDoubleLE(40+(16*numPoints)),
+      mMax = record.readDoubleLE(40+(16*numPoints)+8),
+      x = (40+(16*numPoints)+16),
+      measures = new Array(numPoints);
+      zMin = record.readDoubleLE(x+(8*numPoints)),
+      zMax = record.readDoubleLE(x+(8*numPoints)+8),
+      y = (x+(8*numPoints)+16),
+      zVals = new Array(numPoints);
+  for (j = 0; j < numPoints; ++j, i += 16, x += 8, y += 8) {
+    points[j] = [record.readDoubleLE(i), record.readDoubleLE(i + 8)];
+    measures[j] = record.readDoubleLE(x);
+    zVals[j] = record.readDoubleLE(y);
+  }
+  
+  return {
+    shapeType: 18,
+    box: box,
+    points: points,
+    mRange: [mMin,mMax],
+    measures: measures,
+    zRange: [zMin,zMax],
+    zVals: zVals
   };
 }

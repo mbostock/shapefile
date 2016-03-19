@@ -26,7 +26,7 @@
     "test": "./node_modules/.bin/vows && echo"
   },
   "dependencies": {
-    "iconv-lite": "0.2",
+    "iconv-lite": "0.4",
     "optimist": "0.3",
     "d3-queue": "1"
   },

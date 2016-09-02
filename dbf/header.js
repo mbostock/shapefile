@@ -1,5 +1,4 @@
 module.exports = function() {
-  if (this._recordLength != null) throw new Error("already read header");
   return this._file.read(32).then((head) => this._file.read(head.readUInt16LE(8) - 32).then((body) => {
     var n = 0;
     while (body.readUInt8(n) != 0x0d) {

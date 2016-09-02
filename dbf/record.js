@@ -14,7 +14,6 @@ var types = {
 };
 
 module.exports = function() {
-  if (this._recordLength == null) throw new Error("must read header before records");
   var i = 1;
   return this._file.read(this._recordLength).then((buffer) => buffer.length
       ? this._fields.map((f) => types[f.type](this._decode(buffer, i, i += f.length)))

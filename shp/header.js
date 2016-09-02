@@ -23,7 +23,6 @@ var types = {
 };
 
 module.exports = function() {
-  if (this._type != null) throw new Error("already read header");
   return this._file.read(100).then((buffer) => {
     var type = buffer.readInt32LE(32);
     if (!(type in types)) throw new Error("unsupported shape type: " + type);

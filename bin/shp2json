@@ -1,15 +1,40 @@
 #!/usr/bin/env node
 
-var shapefile = require("../");
+var fs = require("fs"),
+    commander = require("commander"),
+    shapefile = require("../");
 
-var out = process.stdout;
+commander
+    .version(require("../package.json").version)
+    .usage("[options] <file>")
+    .option("-o, --out <file>", "output GeoJSON file name; - for stdout")
+    .option("--ignore-properties", "don’t read shapefile properties (.dbf)")
+    .option("--property-encoding <encoding>", "character encoding for shapefile properties (.dbf)")
+    .parse(process.argv);
 
-shapefile.open(process.argv[2])
+if (commander.args.length < 1) {
+  console.error("error: missing input file");
+  process.exit(1);
+}
+
+var out = ([undefined, true, "-"].indexOf(commander.out) >= 0)
+    ? process.stdout
+    : fs.createWriteStream(commander.out);
+
+console.warn({
+  "encoding": commander.propertyEncoding,
+  "ignore-properties": commander.ignoreProperties
+}, commander.args[0]);
+
+shapefile.open(commander.args[0], {
+    "encoding": commander.propertyEncoding,
+    "ignore-properties": commander.ignoreProperties
+  })
   .then((file) => file.header()
     .then((header) => (out.write(`{"type":"FeatureCollection","bbox":${JSON.stringify(header.bbox)},"features":[`), file.record()))
     .then((record) => record && (out.write(`\n${JSON.stringify(record)}`), file.record()
       .then(function next() { return file.record().then((record) => record && (out.write(`,\n${JSON.stringify(record)}`), next())); })
       .then(() => out.write("\n"))))
     .catch((error) => file.close().then(() => { throw error; }))
-    .then(() => (out.write("]}\n"), file.close())))
+    .then(() => (out[out === process.stdout ? "write" : "end"]("]}\n"), file.close())))
   .catch((error) => console.error(error.stack));

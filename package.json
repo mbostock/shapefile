@@ -27,9 +27,9 @@
     "postpublish": "git push && git push --tags"
   },
   "dependencies": {
-    "file-source": "0.3",
-    "iconv-lite": "0.4",
-    "optimist": "0.3"
+    "commander": "2",
+    "file-source": "0.4",
+    "iconv-lite": "0.4"
   },
   "devDependencies": {
     "tape": "4"

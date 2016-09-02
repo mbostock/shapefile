@@ -13,7 +13,7 @@ function decodeUtf8(buffer, i, j) {
 }
 
 function source(options) {
-  var encoding = "utf8";
+  var encoding = "ISO-8859-1";
   if (options && (options.encoding != null)) encoding = options.encoding + "";
   return new Dbf(file.source(options), encoding);
 }
@@ -26,7 +26,7 @@ exports.open = function(path, options) {
 
 function Dbf(file, encoding) {
   this._file = file;
-  this._decode = utf8.test(encoding) ? decodeUtf8 : decoder(encoding || "ISO-8859-1")
+  this._decode = utf8.test(encoding) ? decodeUtf8 : decoder(encoding)
   this._recordLength = null;
   this._fields = [];
 }

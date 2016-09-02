@@ -9,7 +9,7 @@ commander
     .usage("[options] <file>")
     .option("-o, --out <file>", "output GeoJSON file name; - for stdout")
     .option("--ignore-properties", "don’t read shapefile properties (.dbf)")
-    .option("--property-encoding <encoding>", "character encoding for shapefile properties (.dbf)")
+    .option("--encoding <encoding>", "character encoding for shapefile properties (.dbf)")
     .parse(process.argv);
 
 if (commander.args.length < 1) {
@@ -22,7 +22,7 @@ var out = ([undefined, true, "-"].indexOf(commander.out) >= 0)
     : fs.createWriteStream(commander.out);
 
 shapefile.open(commander.args[0], {
-    "encoding": commander.propertyEncoding,
+    "encoding": commander.encoding,
     "ignore-properties": commander.ignoreProperties
   })
   .then((file) => file.header()

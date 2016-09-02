@@ -17,13 +17,7 @@ This is a convenience API for reading an entire shapefile in one go; use this me
 
 <a name="source" href="#source">#</a> shapefile.<b>source</b>(<i>options</i>)
 
-Returns a new shapefile source. For example:
-
-```js
-var hello = shapefile.source();
-```
-
-The source is initially closed; use [shapefile.open](#open) or [*source*.open](#source_open) to open a shapefile. The supported options are:
+Returns a new shapefile source. The source is initially closed; use [shapefile.open](#open) or [*source*.open](#source_open) to open a shapefile. The supported options are:
 
 * `size` - the internal buffer size, akin to Node’s highWaterMark
 * `encoding` - the DBF character encoding (defaults to ISO-8859-1)
@@ -47,27 +41,36 @@ shapefile.open("hello.shp")
 
 <a name="source_open" href="#source_open">#</a> <i>source</i>.<b>open</b>(<i>path</i>)
 
-Returns a promise that yields an open shapefile source for the specified *path*, positioned at the start of the shapefile. For example:
-
-```js
-var hello = shapefile.source();
-
-hello.open("hello.shp")
-  .then(() => hello.close())
-  .catch((error) => console.error(error.stack));
-```
-
-Yields an error if this source is not closed or if there was an error opening the underlying shapefile. In this case, this source is still considered closed, and you can use this source to open another shapefile if desired.
+Returns a promise that yields an open shapefile source for the specified *path*, positioned at the start of the shapefile. Yields an error if this source is not closed or if there was an error opening the underlying shapefile. In this case, this source is still considered closed, and you can use this source to open another shapefile if desired.
 
 After opening, you can call [*source*.close](#source_close) to close the shapefile. After closing, you can re-open a source with the same or different path, if desired. If this source was created using [shapefile.open](#open), the yielded source is already open, and you don’t need to call this method.
 
 <a name="source_header" href="#source_header">#</a> <i>source</i>.<b>header</b>()
 
-…
+Returns a promise the yields the shapefile header. This method should be called after [opening](#source_open) the shapefile, before any [records](#source_record) are read. For example:
+
+```js
+shapefile.open("hello.shp")
+  .then((hello) => hello.header()
+    .then((header) => console.log(header))
+    .catch((error) => hello.close().then(() => { throw error; }))
+    .then(() => hello.close()))
+  .catch((error) => console.error(error.stack));
+```
 
 <a name="source_record" href="#source_record">#</a> <i>source</i>.<b>record</b>()
 
-…
+Returns a promise the yields the next shapefile record as a [GeoJSON feature](http://geojson.org/geojson-spec.html#feature-objects), or null if the end of the shapefile was reached. This method should be called after reading the shapefile [header](#source_header). For example:
+
+```js
+shapefile.open("hello.shp")
+  .then((hello) => hello.header()
+    .then((header) => console.log(header))
+    .then(function next() { return hello.record().then((record) => record && (console.log(record), next())); })
+    .catch((error) => hello.close().then(() => { throw error; }))
+    .then(() => hello.close()))
+  .catch((error) => console.error(error.stack));
+```
 
 <a name="source_close" href="#source_close">#</a> <i>source</i>.<b>close</b>()
 

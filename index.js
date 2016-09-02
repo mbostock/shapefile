@@ -14,6 +14,16 @@ exports.open = function(path, options) {
   return source(options).open(path);
 };
 
+exports.read = function(path, options) {
+  var features = [], collection = {type: "FeatureCollection", bbox: null, features: features};
+  return source(options).open(path)
+    .then((file) => file.header()
+      .then((header) => collection.bbox = header.bbox)
+      .then(function next() { return file.record().then((record) => record && (features.push(record), next())); })
+      .catch((error) => file.close().then(() => { throw error; }))
+      .then(() => (file.close(), collection)));
+};
+
 function Shapefile(shp, dbf) {
   this._shp = shp;
   this._dbf = dbf;

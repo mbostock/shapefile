@@ -15,7 +15,7 @@ function Shp(file) {
   this._type = null;
 }
 
-var prototype = source.prototype = Shp.prototype
+var prototype = source.prototype = Shp.prototype;
 prototype.open = require("./open");
 prototype.header = require("./header");
 prototype.record = require("./record");

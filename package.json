@@ -10,12 +10,12 @@
   "license": "BSD-3-Clause",
   "author": {
     "name": "Mike Bostock",
-    "url": "http://bost.ocks.org/mike"
+    "url": "https://bost.ocks.org/mike"
   },
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "http://github.com/mbostock/shapefile.git"
+    "url": "https://github.com/mbostock/shapefile.git"
   },
   "bin": {
     "dbfcat": "./bin/dbfcat",
@@ -23,14 +23,16 @@
     "shp2json": "./bin/shp2json"
   },
   "scripts": {
-    "test": "./node_modules/.bin/vows && echo"
+    "test": "tape 'test/**/*-test.js'",
+    "postpublish": "git push && git push --tags"
   },
   "dependencies": {
+    "d3-queue": "3",
+    "file-source": "0.3",
     "iconv-lite": "0.2",
-    "optimist": "0.3",
-    "d3-queue": "1"
+    "optimist": "0.3"
   },
   "devDependencies": {
-    "vows": "0.7"
+    "tape": "4"
   }
 }

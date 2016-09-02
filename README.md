@@ -2,54 +2,87 @@
 
 Based on the [ESRI Shapefile Technical Description](http://www.esri.com/library/whitepapers/pdfs/shapefile.pdf) and [dBASE Table File Format](http://www.digitalpreservation.gov/formats/fdd/fdd000325.shtml).
 
-Caveat emptor: this library is a work in progress and does not currently support all shapefile geometry types (see [shp.js](https://github.com/mbostock/shapefile/blob/master/shp.js) for details). It also only supports dBASE III and has no error checking. Please contribute if you want to help!
+Caveat emptor: this library is a work in progress and does not currently support all shapefile geometry types. It also only supports dBASE III and has no error checking. Please contribute if you want to help!
 
-## Reading a Shapefile
+To load:
 
-<a name="read" href="#read">#</a> shapefile.<b>read</b>(<i>filename</i>[, <i>options</i>], <i>callback</i>)
+```js
+var shapefile = require("shapefile");
+```
 
-A convenience API for reading an entire shapefile in one go. Use this method if you don’t mind putting the whole shapefile in memory; use <a href="#reader">reader</a> instead if you want to process records individually. The specified *callback* with two arguments:
+## API Reference
 
-* *error* - the error, if any
-* *collection* - a [GeoJSON feature collection](http://geojson.org/geojson-spec.html#feature-collection-objects)
+<a name="read" href="#read">#</a> <i>shapefile</i>.<b>read</b>(<i>path</i>[, <i>options</i>])
 
-The *collection* has a `bbox` property containing representing the bounding box of all records in this shapefile. The bounding box is specified as [xmin, ymin, xmax, ymax], where *x* and *y* represent longitude and latitude in spherical coordinates.
+Returns a promise that yields a [GeoJSON feature collection](http://geojson.org/geojson-spec.html#feature-collection-objects) for the shapefile at the given *path*. The *path* should be of the form `path/to/file.shp`; the corresponding DBF file, if any, should be `path/to/file.dbf`. The supported options are:
 
-## Streaming a Shapefile
-
-<a name="reader" href="#reader">#</a> shapefile.<b>reader</b>(<i>filename</i>[, <i>options</i>])
-
-The main API for reading a shapefile. The supported options are:
-
-* *encoding* - the DBF encoding (defaults to ISO-8859-1)
+* *encoding* - the DBF character encoding (defaults to ISO-8859-1)
 * *ignore-properties* - if true, don’t read properties (faster; defaults to false)
 
-This method returns a reader object.
+The yielded *collection* has a `bbox` property containing representing the bounding box of all records in this shapefile. The bounding box is specified as [xmin, ymin, xmax, ymax], where *x* and *y* represent longitude and latitude in spherical coordinates.
 
-<a name="reader_readHeader" href="#reader_readHeader">#</a> reader.<b>readHeader</b>(<i>callback</i>)
+This is a convenience API for reading an entire shapefile in one go; use this method if you don’t mind putting the whole shapefile in memory, or use <a href="#open"><i>shapefile</i>.open</a> to process records individually.
 
-Reads the shapefile header, invoking the specified *callback* with two arguments:
+<a name="source" href="#source">#</a> <i>shapefile</i>.<b>source</b>(<i>options</i>)
 
-* *error* - the error, if any
-* *header* - the header object
+…
 
-The *header* object is simply an object with a `bbox` property representing the bounding box of all records in this shapefile. The bounding box is specified as [xmin, ymin, xmax, ymax], where *x* and *y* represent longitude and latitude in spherical coordinates.
+<a name="open" href="#open">#</a> <i>shapefile</i>.<b>open</b>(<i>path</i>)
 
-<a name="reader_readRecord" href="#reader_readRecord">#</a> reader.<b>readRecord</b>(<i>callback</i>)
+…
 
-Reads the next shapefile record, invoking the specified *callback* with two arguments:
+### Shapefiles (.shp)
 
-* *error* - the error, if any
-* *record* - the record object, or <a href="#end">shapefile.end</a>
+Based on the [ESRI Shapefile Technical Description](http://www.esri.com/library/whitepapers/pdfs/shapefile.pdf).
 
-The *record* object is a [GeoJSON feature](http://geojson.org/geojson-spec.html#feature-objects). (GeoJSON objects are the standard representation of geometry in JavaScript, and they are convenient. If you want to access the shapefile primitives directly, use the private [shp](https://github.com/mbostock/shapefile/blob/master/shp.js) and [dbf](https://github.com/mbostock/shapefile/blob/master/dbf.js) classes instead.)
+<a name="_shp_source" href="#_shp_source">#</a> <i>shapefile</i>.shp.<b>source</b>(<i>options</i>)
 
-If there are no more records in this shapefile, the *record* is the special value <a href="#end">shapefile.end</a>.
+…
 
-<a name="reader_close" href="#reader_close">#</a> reader.<b>close</b>(<i>callback</i>)
+<a name="_shp_open" href="#_shp_open">#</a> <i>shapefile</i>.shp.<b>open</b>(<i>path</i>[, <i>options</i>])
 
-Closes the underlying files for this reader. You should call this when you are done reading. If an error occurs during <a href="#reader_readHeader">readHeader</a> or <a href="#reader_readRecord">readRecord</a>, the reader will be closed automatically.
+…
 
-<a name="end" href="#end">#</a> shapefile.<b>end</b>
+<a name="shp_open" href="#shp_open">#</a> <i>shp</i>.<b>open</b>(<i>path</i>)
 
-A sentinel value used <a href="#reader_readRecord">readRecord</a> to indicate that the end of the file has been reached, and no more records are available. (Note that if the end of file is reached when <a href="#reader_readHeader">readHeader</a> is called, this is considered an error because the header is required by the shapefile format.)
+…
+
+<a name="shp_header" href="#shp_header">#</a> <i>shp</i>.<b>header</b>()
+
+…
+
+<a name="shp_record" href="#shp_record">#</a> <i>shp</i>.<b>record</b>()
+
+…
+
+<a name="shp_close" href="#shp_close">#</a> <i>shp</i>.<b>close</b>()
+
+…
+
+### dBASE Table Files (.dbf)
+
+Based on the [dBASE Table File Format](http://www.digitalpreservation.gov/formats/fdd/fdd000325.shtml).
+
+<a name="_dbf_source" href="#_dbf_source">#</a> <i>shapefile</i>.dbf.<b>source</b>(<i>options</i>)
+
+…
+
+<a name="_dbf_open" href="#_dbf_open">#</a> <i>shapefile</i>.dbf.<b>open</b>(<i>path</i>[, <i>options</i>])
+
+…
+
+<a name="dbf_open" href="#dbf_open">#</a> <i>dbf</i>.<b>open</b>(<i>path</i>)
+
+…
+
+<a name="dbf_header" href="#dbf_header">#</a> <i>dbf</i>.<b>header</b>()
+
+…
+
+<a name="dbf_record" href="#dbf_record">#</a> <i>dbf</i>.<b>record</b>()
+
+…
+
+<a name="dbf_close" href="#dbf_close">#</a> <i>dbf</i>.<b>close</b>()
+
+…

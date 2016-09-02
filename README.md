@@ -11,7 +11,7 @@ Returns a promise that yields a [GeoJSON feature collection](http://geojson.org/
 * `encoding` - the DBF character encoding (defaults to ISO-8859-1)
 * `ignoreProperties` - if true, don’t read properties (faster; defaults to false)
 
-The yielded *collection* has a `bbox` property containing representing the bounding box of all records in this shapefile. The bounding box is specified as [xmin, ymin, xmax, ymax], where *x* and *y* represent longitude and latitude in spherical coordinates.
+The yielded *collection* has a bbox property containing representing the bounding box of all records in this shapefile. The bounding box is specified as [xmin, ymin, xmax, ymax], where *x* and *y* represent longitude and latitude in spherical coordinates.
 
 This is a convenience API for reading an entire shapefile in one go; use this method if you don’t mind putting the whole shapefile in memory, or use <a href="#open">shapefile.open</a> to process records individually.
 
@@ -23,9 +23,9 @@ Returns a new shapefile source. For example:
 var hello = shapefile.source();
 ```
 
-The source is initially closed; use [shapefile.open](#open) or [*source*.open](#source_open) to open a shapefile. The supported options:
+The source is initially closed; use [shapefile.open](#open) or [*source*.open](#source_open) to open a shapefile. The supported options are:
 
-* `size` - the internal buffer size, akin to Node’s `highWaterMark`
+* `size` - the internal buffer size, akin to Node’s highWaterMark
 * `encoding` - the DBF character encoding (defaults to ISO-8859-1)
 * `ignoreProperties` - if true, don’t read properties (faster; defaults to false)
 

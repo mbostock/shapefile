@@ -11,7 +11,7 @@ Returns a promise that yields a [GeoJSON feature collection](http://geojson.org/
 * `encoding` - the DBF character encoding (defaults to ISO-8859-1)
 * `ignoreProperties` - if true, don’t read properties (faster; defaults to false)
 
-The yielded *collection* has a bbox property containing representing the bounding box of all records in this shapefile. The bounding box is specified as [xmin, ymin, xmax, ymax], where *x* and *y* represent longitude and latitude in spherical coordinates.
+The yielded *collection* has a bbox property representing the bounding box of all records in this shapefile. The bounding box is specified as [xmin, ymin, xmax, ymax], where *x* and *y* represent longitude and latitude in spherical coordinates.
 
 This is a convenience API for reading an entire shapefile in one go; use this method if you don’t mind putting the whole shapefile in memory, or use <a href="#open">shapefile.open</a> to process records individually.
 
@@ -57,6 +57,8 @@ shapefile.open("hello.shp")
     .then(() => hello.close()))
   .catch((error) => console.error(error.stack));
 ```
+
+The header object has a bbox property representing the bounding box of all records in this shapefile. The bounding box is specified as [xmin, ymin, xmax, ymax], where *x* and *y* represent longitude and latitude in spherical coordinates.
 
 <a name="source_record" href="#source_record">#</a> <i>source</i>.<b>record</b>()
 

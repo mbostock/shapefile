@@ -27,9 +27,6 @@ exports.open = function(path, options) {
 function Dbf(file, encoding) {
   this._file = file;
   this._decode = utf8.test(encoding) ? decodeUtf8 : decoder(encoding || "ISO-8859-1")
-  this._version = null;
-  this._date = null;
-  this._length = null;
   this._recordLength = null;
   this._fields = [];
 }

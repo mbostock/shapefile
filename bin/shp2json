@@ -21,10 +21,7 @@ var out = ([undefined, true, "-"].indexOf(commander.out) >= 0)
     ? process.stdout
     : fs.createWriteStream(commander.out);
 
-shapefile.open(commander.args[0], {
-    "encoding": commander.encoding,
-    "ignore-properties": commander.ignoreProperties
-  })
+shapefile.open(commander.args[0], {encoding: commander.encoding, ignoreProperties: commander.ignoreProperties})
   .then((file) => file.header()
     .then((header) => (out.write(`{"type":"FeatureCollection","bbox":${JSON.stringify(header.bbox)},"features":[`), file.record()))
     .then((record) => record && (out.write(`\n${JSON.stringify(record)}`), file.record()

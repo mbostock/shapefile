@@ -4,7 +4,7 @@ var shp = require("./shp"),
 
 function source(options) {
   var ignoreProperties = false;
-  if (options && (options["ignore-properties"] != null)) ignoreProperties = !!options["ignore-properties"];
+  if (options && (options.ignoreProperties != null)) ignoreProperties = !!options.ignoreProperties;
   return new Shapefile(shp.source(options), ignoreProperties ? null : dbf.source(options));
 }
 

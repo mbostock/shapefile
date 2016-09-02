@@ -12,7 +12,10 @@ var shapeTypes = {
 
 module.exports = function(shapeType) {
   if (!(shapeType in shapeTypes)) throw new Error("unknown shape type: " + shapeType);
-  return shapeTypes[shapeType];
+  var convert = shapeTypes[shapeType];
+  return function(record) {
+    return record.shapeType ? convert(record) : null;
+  };
 };
 
 function none() {

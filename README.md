@@ -14,7 +14,7 @@ var shapefile = require("shapefile");
 
 <a name="read" href="#read">#</a> <i>shapefile</i>.<b>read</b>(<i>path</i>[, <i>options</i>])
 
-Returns a promise that yields a [GeoJSON feature collection](http://geojson.org/geojson-spec.html#feature-collection-objects) for the shapefile at the given *path*. The *path* should be of the form `path/to/file.shp`; the corresponding DBF file, if any, should be `path/to/file.dbf`. The supported options are:
+Returns a promise that yields a [GeoJSON feature collection](http://geojson.org/geojson-spec.html#feature-collection-objects) for the shapefile at the given *path*. The *path* should include the extension “.shp”. The supported options are:
 
 * *encoding* - the DBF character encoding (defaults to ISO-8859-1)
 * *ignore-properties* - if true, don’t read properties (faster; defaults to false)

@@ -21,11 +21,6 @@ var out = ([undefined, true, "-"].indexOf(commander.out) >= 0)
     ? process.stdout
     : fs.createWriteStream(commander.out);
 
-console.warn({
-  "encoding": commander.propertyEncoding,
-  "ignore-properties": commander.ignoreProperties
-}, commander.args[0]);
-
 shapefile.open(commander.args[0], {
     "encoding": commander.propertyEncoding,
     "ignore-properties": commander.ignoreProperties

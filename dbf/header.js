@@ -1,7 +1,6 @@
 module.exports = function() {
   if (this._recordLength != null) throw new Error("already read header");
   return this._file.read(32).then((head) => {
-    this._recordLength = head.readUInt16LE(10);
     return this._file.read(head.readUInt16LE(8) - 32).then((body) => {
       var n = 0;
       while (body.readUInt8(n) != 0x0d) {
@@ -12,6 +11,7 @@ module.exports = function() {
         });
         n += 32;
       }
+      this._recordLength = head.readUInt16LE(10);
       return {
         version: head.readUInt8(0), // TODO verify 3
         date: new Date(1900 + head.readUInt8(1), head.readUInt8(2) - 1, head.readUInt8(3)),

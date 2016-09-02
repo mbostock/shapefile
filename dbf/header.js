@@ -1,8 +1,3 @@
-function name(string) {
-  var i = string.indexOf("\0");
-  return i < 0 ? string : string.substring(0, i);
-}
-
 module.exports = function() {
   if (this._recordLength != null) throw new Error("already read header");
   return this._file.read(32).then((head) => {
@@ -11,7 +6,7 @@ module.exports = function() {
       var n = 0;
       while (body.readUInt8(n) != 0x0d) {
         this._fields.push({
-          name: name(this._decode(body, n, n + 11)),
+          name: this._decode(body, n, n + 11).replace(/\0.*/, ""),
           type: body.toString("ascii", n + 11, n + 12),
           length: body.readUInt8(n + 16)
         });

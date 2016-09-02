@@ -4,8 +4,8 @@ var shp = require("../shp");
 
 shp.open(process.argv[2] || "/dev/stdin")
   .then((file) => file.header()
-    .then((header) => console.log("header", header))
-    .then(function next() { return file.record().then((record) => record && (console.log("record", record), next())); })
+    .then((header) => console.log(header))
+    .then(function next() { return file.record().then((record) => record && (console.log(record), next())); })
     .catch((error) => file.close().then(() => { throw error; }))
-    .then(() => (console.log("end"), file.close())))
+    .then(() => file.close()))
   .catch((error) => console.error(error.stack));

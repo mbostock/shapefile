@@ -1,7 +1,7 @@
 var file = require("file-source");
 
-function source(path, options) {
-  return new Shp(file.source(path, options));
+function source(options) {
+  return new Shp(file.source(options));
 }
 
 exports.source = source;

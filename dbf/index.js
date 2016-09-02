@@ -12,10 +12,10 @@ function decodeUtf8(buffer, i, j) {
   return buffer.toString("utf8", i, j);
 }
 
-function source(path, options) {
+function source(options) {
   var encoding = "utf8";
   if (options && (options.encoding != null)) encoding = options.encoding + "";
-  return new Dbf(file.source(path, options), encoding);
+  return new Dbf(file.source(options), encoding);
 }
 
 exports.source = source;

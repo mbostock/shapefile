@@ -25,18 +25,18 @@ This is a convenience API for reading an entire shapefile in one go; use this me
 
 …
 
-<a name="shapefile_open" href="#shapefile_open">#</a> <i>shapefile</i>.<b>open</b>(<i>path</i>)
+<a name="source_open" href="#source_open">#</a> <i>source</i>.<b>open</b>(<i>path</i>)
 
 …
 
-<a name="shapefile_header" href="#shapefile_header">#</a> <i>shapefile</i>.<b>header</b>()
+<a name="source_header" href="#source_header">#</a> <i>source</i>.<b>header</b>()
 
 …
 
-<a name="shapefile_record" href="#shapefile_record">#</a> <i>shapefile</i>.<b>record</b>()
+<a name="source_record" href="#source_record">#</a> <i>source</i>.<b>record</b>()
 
 …
 
-<a name="shapefile_close" href="#shapefile_close">#</a> <i>shapefile</i>.<b>close</b>()
+<a name="source_close" href="#source_close">#</a> <i>source</i>.<b>close</b>()
 
 …

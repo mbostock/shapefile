@@ -2,7 +2,6 @@ var properties = require("./dbf/properties"),
     geometry = require("./shp/geometry");
 
 module.exports = function(path) {
-  if (this._geometry != null) throw new Error("already read header");
   return Promise.all([
     this._dbf && this._dbf.header(),
     this._shp.header()

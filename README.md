@@ -34,8 +34,8 @@ shapefile.source(options).open(path)
 For example:
 
 ```js
-shapefile.open("hello.shp")
-  .then((hello) => hello.close())
+shapefile.open("example.shp")
+  .then((source) => source.close())
   .catch((error) => console.error(error.stack));
 ```
 
@@ -50,11 +50,11 @@ After opening, you can call [*source*.close](#source_close) to close the shapefi
 Returns a promise the yields the shapefile header. This method should be called after [opening](#source_open) the shapefile, before any [records](#source_record) are read. For example:
 
 ```js
-shapefile.open("hello.shp")
-  .then((hello) => hello.header()
+shapefile.open("example.shp")
+  .then((source) => source.header()
     .then((header) => console.log(header))
-    .catch((error) => hello.close().then(() => { throw error; }))
-    .then(() => hello.close()))
+    .catch((error) => source.close().then(() => { throw error; }))
+    .then(() => source.close()))
   .catch((error) => console.error(error.stack));
 ```
 
@@ -65,12 +65,13 @@ The header object has a bbox property representing the bounding box of all recor
 Returns a promise the yields the next shapefile record as a [GeoJSON feature](http://geojson.org/geojson-spec.html#feature-objects), or null if the end of the shapefile was reached. This method should be called after reading the shapefile [header](#source_header). For example:
 
 ```js
-shapefile.open("hello.shp")
-  .then((hello) => hello.header()
+shapefile.open("example.shp")
+  .then((source) => source.header()
     .then((header) => console.log(header))
-    .then(function next() { return hello.record().then((record) => record && (console.log(record), next())); })
-    .catch((error) => hello.close().then(() => { throw error; }))
-    .then(() => hello.close()))
+    .then(function repeat() { return source.record()
+      .then((record) => record && (console.log(record), repeat())); })
+    .catch((error) => source.close().then(() => { throw error; }))
+    .then(() => source.close()))
   .catch((error) => console.error(error.stack));
 ```
 

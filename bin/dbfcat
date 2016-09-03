@@ -3,9 +3,10 @@
 var dbf = require("../dbf");
 
 dbf.open(process.argv[2] || "/dev/stdin")
-  .then((file) => file.header()
+  .then((source) => source.header()
     .then((header) => console.log(JSON.stringify(header)))
-    .then(function next() { return file.record().then((record) => record && (console.log(JSON.stringify(record)), next())); })
-    .catch((error) => file.close().then(() => { throw error; }))
-    .then(() => file.close()))
+    .then(function repeat() { return source.record()
+      .then((record) => record && (console.log(JSON.stringify(record)), repeat())); })
+    .catch((error) => source.close().then(() => { throw error; }))
+    .then(() => source.close()))
   .catch((error) => console.error(error.stack));

@@ -5,22 +5,19 @@ var tape = require("tape"),
 
 function readHeader(path, options) {
   return dbf.open(path, options)
-    .then((file) => file.header()
-      .catch((error) => file.close().then(() => { throw error; }))
-      .then((header) => file.close().then(() => header)));
+    .then((source) => source.header()
+      .catch((error) => source.close().then(() => { throw error; }))
+      .then((header) => source.close().then(() => header)));
 }
 
 function readRecords(path, options) {
+  var records = [];
   return dbf.open(path, options)
-    .then((file) => file.header()
-      .then((header) => {
-        var records = [];
-        return (function next() {
-          return file.record().then((record) => record ? (records.push(record), next()) : records);
-        })();
-      })
-      .catch((error) => file.close().then(() => { throw error; }))
-      .then((records) => file.close().then(() => records)));
+    .then((source) => source.header()
+      .then(function repeat() { return source.record()
+        .then((record) => record ? (records.push(record), repeat()) : records); })
+      .catch((error) => source.close().then(() => { throw error; }))
+      .then((records) => source.close().then(() => records)));
 }
 
 tape("The header of a simple dBASE file", function(test) {

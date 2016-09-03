@@ -17,11 +17,12 @@ exports.open = function(path, options) {
 exports.read = function(path, options) {
   var features = [], collection = {type: "FeatureCollection", bbox: null, features: features};
   return source(options).open(path)
-    .then((file) => file.header()
+    .then((source) => source.header()
       .then((header) => collection.bbox = header.bbox)
-      .then(function next() { return file.record().then((record) => record && (features.push(record), next())); })
-      .catch((error) => file.close().then(() => { throw error; }))
-      .then(() => (file.close(), collection)));
+      .then(function repeat() { return source.record()
+        .then((record) => record && (features.push(record), repeat())); })
+      .catch((error) => source.close().then(() => { throw error; }))
+      .then(() => (source.close(), collection)));
 };
 
 function Shapefile(shp, dbf) {

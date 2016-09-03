@@ -1,32 +1,47 @@
 #!/usr/bin/env node
 
-var fs = require("fs"),
-    commander = require("commander"),
-    shapefile = require("../");
+var fs = require('fs'),
+    commander = require('commander'),
+    shapefile = require('../');
 
 commander
-    .version(require("../package.json").version)
-    .usage("[options] <file>")
-    .option("-o, --out <file>", "output GeoJSON file name; - for stdout")
-    .option("--ignore-properties", "don’t read shapefile properties (.dbf)")
-    .option("--encoding <encoding>", "character encoding for shapefile properties (.dbf)")
+    .version(require('../package.json').version)
+    .usage('[options] <file>')
+    .option('-o, --out <file>', 'output GeoJSON file name; - for stdout')
+    .option('--ignore-properties', 'don’t read shapefile properties (.dbf)')
+    .option('--encoding <encoding>', 'character encoding for shapefile properties (.dbf)')
     .parse(process.argv);
 
 if (commander.args.length < 1) {
-  console.error("error: missing input file");
+  console.error('error: missing input file');
   process.exit(1);
 }
 
-var out = ([undefined, true, "-"].indexOf(commander.out) >= 0)
-    ? process.stdout
-    : fs.createWriteStream(commander.out);
+var encoding = commander.encoding,
+    ignoreProperties = commander.ignoreProperties,
+    out = ([undefined, true, '-'].indexOf(commander.out) >= 0) ? process.stdout : fs.createWriteStream(commander.out);
 
-shapefile.open(commander.args[0], {encoding: commander.encoding, ignoreProperties: commander.ignoreProperties})
-  .then((file) => file.header()
-    .then((header) => (out.write(`{"type":"FeatureCollection","bbox":${JSON.stringify(header.bbox)},"features":[`), file.record()))
-    .then((record) => record && (out.write(`\n${JSON.stringify(record)}`), file.record()
-      .then(function next() { return file.record().then((record) => record && (out.write(`,\n${JSON.stringify(record)}`), next())); })
-      .then(() => out.write("\n"))))
-    .catch((error) => file.close().then(() => { throw error; }))
-    .then(() => (out[out === process.stdout ? "write" : "end"]("]}\n"), file.close())))
+shapefile.open(commander.args[0], {encoding, ignoreProperties})
+  .then((source) => source.header()
+    .then((header) => {
+      out.write('{"type":"FeatureCollection","bbox":');
+      out.write(JSON.stringify(header.bbox));
+      out.write('"features":[');
+      return source.record();
+    })
+    .then((record) => {
+      if (!record) return;
+      out.write('\n');
+      out.write(JSON.stringify(record));
+      return (function repeat() {
+        return source.record().then((record) => {
+          if (!record) return;
+          out.write(',\n');
+          out.write(JSON.stringify(record));
+          return repeat();
+        });
+      })().then(() => out.write('\n'));
+    })
+    .catch((error) => source.close().then(() => { throw error; }))
+    .then(() => (out[out === process.stdout ? 'write' : 'end'](']}\n'), source.close())))
   .catch((error) => console.error(error.stack));

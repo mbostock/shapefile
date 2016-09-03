@@ -1,3 +1,3 @@
 module.exports = function() {
-  return this._file.close().then(() => (this._type = null, this));
+  return this._source.close().then(() => (this._type = null, this));
 };

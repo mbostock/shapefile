@@ -1,5 +1,5 @@
 module.exports = function() {
-  return this._file.read(32).then((head) => this._file.read(head.readUInt16LE(8) - 32).then((body) => {
+  return this._source.read(32).then((head) => this._source.read(head.readUInt16LE(8) - 32).then((body) => {
     var n = 0;
     while (body.readUInt8(n) != 0x0d) {
       this._fields.push({

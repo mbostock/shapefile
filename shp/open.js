@@ -1,3 +1,3 @@
 module.exports = function(path) {
-  return this._file.open(path).then(() => this);
+  return this._source.open(path).then(() => this);
 };

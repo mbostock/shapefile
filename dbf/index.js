@@ -24,8 +24,8 @@ exports.open = function(path, options) {
   return source(options).open(path);
 };
 
-function Dbf(file, encoding) {
-  this._file = file;
+function Dbf(source, encoding) {
+  this._source = source;
   this._decode = utf8.test(encoding) ? decodeUtf8 : decoder(encoding)
   this._recordLength = null;
   this._fields = [];

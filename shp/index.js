@@ -10,8 +10,8 @@ exports.open = function(path, options) {
   return source(options).open(path);
 };
 
-function Shp(file) {
-  this._file = file;
+function Shp(source) {
+  this._source = source;
   this._type = null;
 }
 

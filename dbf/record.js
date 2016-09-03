@@ -15,7 +15,7 @@ var types = {
 
 module.exports = function() {
   var i = 1;
-  return this._file.read(this._recordLength).then((buffer) => buffer.length
+  return this._source.read(this._recordLength).then((buffer) => buffer.length
       ? this._fields.map((f) => types[f.type](this._decode(buffer, i, i += f.length)))
       : null);
 };

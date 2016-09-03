@@ -6,7 +6,15 @@ Based on the [ESRI Shapefile Technical Description](http://www.esri.com/library/
 
 <a name="read" href="#read">#</a> shapefile.<b>read</b>(<i>path</i>[, <i>options</i>])
 
-Returns a promise that yields a [GeoJSON feature collection](http://geojson.org/geojson-spec.html#feature-collection-objects) for the shapefile at the given *path*. The *path* should include the extension “.shp”. The supported options are:
+Returns a promise that yields a [GeoJSON feature collection](http://geojson.org/geojson-spec.html#feature-collection-objects) for the shapefile at the given *path*. The *path* should include the extension “.shp”. For example:
+
+```js
+shapefile.read("example.shp")
+  .then((collection) => console.log(collection))
+  .catch((error) => console.error(error.stack));
+```
+
+The supported options are:
 
 * `encoding` - the DBF character encoding (defaults to ISO-8859-1)
 * `ignoreProperties` - if true, don’t read properties (faster; defaults to false)

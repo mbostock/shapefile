@@ -1,22 +1,18 @@
-var file = require("file-source");
+import readNull from "./null";
+import shp_cancel from "./cancel";
+import shp_header from "./header";
+import shp_record from "./record";
 
-function source(options) {
-  return new Shp(file.source(options));
+export default function shp(source) {
+  return new Shp(source);
 }
-
-exports.source = source;
-
-exports.open = function(path, options) {
-  return source(options).open(path);
-};
 
 function Shp(source) {
   this._source = source;
-  this._type = null;
+  this._type = readNull;
 }
 
-var prototype = source.prototype = Shp.prototype;
-prototype.open = require("./open");
-prototype.header = require("./header");
-prototype.record = require("./record");
-prototype.close = require("./close");
+var prototype = Shp.prototype;
+prototype.header = shp_header;
+prototype.record = shp_record;
+prototype.cancel = shp_cancel;

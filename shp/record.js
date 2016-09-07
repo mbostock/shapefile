@@ -1,7 +1,14 @@
-var readNull = require("./null");
+import view from "../view";
+import readNull from "./null";
 
-module.exports = function() {
-  return this._source.read(8)
-    .then((buffer) => buffer.length == 0 ? null : this._source.read(buffer.readInt32BE(4) * 2)
-      .then((buffer) => buffer.readInt32LE(0) ? this._type(buffer) : readNull()));
-};
+export default function record() {
+  var that = this;
+  return this._source.read(8).then(function(result) {
+    if (result.done) return null;
+    var header = view(result);
+    return that._source.read(header.getInt32(4, false) * 2).then(function(result) { // TODO optimize read
+      var record = view(result);
+      return record.getInt32(0, true) ? that._type(record) : readNull();
+    });
+  });
+}

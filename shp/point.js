@@ -1,9 +1,3 @@
-module.exports = function(record) {
-  var x = record.readDoubleLE(4),
-      y = record.readDoubleLE(12);
-  return {
-    shapeType: 1,
-    x: x,
-    y: y
-  };
+export default function(record) {
+  return {shapeType: 1, x: record.getFloat64(4, true), y: record.getFloat64(12, true)};
 };

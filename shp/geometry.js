@@ -10,42 +10,28 @@ var shapeTypes = {
   18: multipoint // MultiPointZ
 };
 
-module.exports = function(shapeType) {
+export default function geometry(shapeType) {
   if (!(shapeType in shapeTypes)) throw new Error("unknown shape type: " + shapeType);
   var convert = shapeTypes[shapeType];
-  return function(record) {
-    return record.shapeType ? convert(record) : null;
-  };
-};
+  return function(record) { return record.shapeType ? convert(record) : null; };
+}
 
 function none() {
   return null;
 }
 
 function point(record) {
-  return {
-    type: "Point",
-    coordinates: [record.x, record.y]
-  };
+  return {type: "Point", coordinates: [record.x, record.y]};
 }
 
 function multipoint(record) {
-  return {
-    type: "MultiPoint",
-    coordinates: record.points
-  };
+  return {type: "MultiPoint", coordinates: record.points};
 }
 
 function polyline(record) {
-  return record.parts.length === 1 ? {
-    type: "LineString",
-    coordinates: record.points
-  } : {
-    type: "MultiLineString",
-    coordinates: record.parts.map(function(i, j) {
-      return record.points.slice(i, record.parts[j + 1]);
-    })
-  };
+  return record.parts.length === 1
+      ? {type: "LineString", coordinates: record.points}
+      : {type: "MultiLineString", coordinates: record.parts.map(function(i, j) { return record.points.slice(i, record.parts[j + 1]); })};
 }
 
 function polygon(record) {
@@ -75,17 +61,13 @@ function polygon(record) {
 
 function ringClockwise(ring) {
   if ((n = ring.length) < 4) return false;
-  var i = 0,
-      n,
-      area = ring[n - 1][1] * ring[0][0] - ring[n - 1][0] * ring[0][1];
+  var i = 0, n, area = ring[n - 1][1] * ring[0][0] - ring[n - 1][0] * ring[0][1];
   while (++i < n) area += ring[i - 1][1] * ring[i][0] - ring[i - 1][0] * ring[i][1];
   return area >= 0;
 }
 
 function ringContains(ring, point) {
-  var x = point[0],
-      y = point[1],
-      contains = false;
+  var x = point[0], y = point[1], contains = false;
   for (var i = 0, n = ring.length, j = n - 1; i < n; j = i++) {
     var pi = ring[i], xi = pi[0], yi = pi[1],
         pj = ring[j], xj = pj[0], yj = pj[1];

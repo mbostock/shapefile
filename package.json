@@ -12,7 +12,7 @@
     "name": "Mike Bostock",
     "url": "https://bost.ocks.org/mike"
   },
-  "main": "index.js",
+  "main": "dist/shapefile.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/mbostock/shapefile.git"
@@ -24,14 +24,17 @@
   },
   "scripts": {
     "test": "tape 'test/**/*-test.js'",
+    "prepublish": "rm -rf dist && mkdir dist && rollup --banner \"$(preamble)\" -f umd -n shapefile -o dist/shapefile.js -- shp/index.js && uglifyjs --preamble \"$(preamble)\" -o dist/shapefile.min.js -cm -- dist/shapefile.js",
     "postpublish": "git push && git push --tags"
   },
   "dependencies": {
     "commander": "2",
-    "file-source": "0.4",
-    "iconv-lite": "0.4"
+    "path-source": "0.0"
   },
   "devDependencies": {
-    "tape": "4"
+    "package-preamble": "0.0",
+    "rollup": "0.34",
+    "tape": "4",
+    "uglify-js": "2"
   }
 }

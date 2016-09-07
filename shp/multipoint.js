@@ -1,13 +1,5 @@
-module.exports = function(record) {
-  var box = [record.readDoubleLE(4), record.readDoubleLE(12), record.readDoubleLE(20), record.readDoubleLE(28)],
-      numPoints = record.readInt32LE(36),
-      points = new Array(numPoints),
-      i = 40,
-      j;
-  for (j = 0; j < numPoints; ++j, i += 16) points[j] = [record.readDoubleLE(i), record.readDoubleLE(i + 8)];
-  return {
-    shapeType: 8,
-    box: box,
-    points: points
-  };
+export default function(record) {
+  var i = 40, j, n = record.getInt32(36, true), points = new Array(n);
+  for (j = 0; j < n; ++j, i += 16) points[j] = [record.getFloat64(i, true), record.getFloat64(i + 8, true)];
+  return {shapeType: 8, box: [record.getFloat64(4, true), record.getFloat64(12, true), record.getFloat64(20, true), record.getFloat64(28, true)], points: points};
 };

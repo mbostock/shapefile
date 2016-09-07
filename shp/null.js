@@ -1,5 +1,3 @@
-module.exports = function() {
-  return {
-    shapeType: 0
-  };
+export default function() {
+  return {shapeType: 0};
 };

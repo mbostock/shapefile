@@ -46,7 +46,7 @@ If typeof *shp* is “string”, opens the shapefile at the specified *shp* path
 
 If typeof *dbf* is “string”, opens the dBASE file at the specified *dbf* path. If *dbf* does not have a “.dbf” extension, it is implicitly added. If *dbf* instanceof ArrayBuffer or *dbf* instanceof Uint8Array, reads the specified in-memory dBASE file. If *dbf* is undefined and *shp* is a string, then *dbf* defaults to *shp* with the “.shp” extension replaced with “.dbf”; in this case, no error is thrown if there is no dBASE file at the resulting implied *dbf*. If *dbf* is undefined and *shp* is not a string, or if *dbf* is null, then no dBASE file is read, and the resulting GeoJSON features will have empty properties. Otherwise, *dbf* must be a [Node readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) in Node or a [WhatWG standard readable stream](https://streams.spec.whatwg.org/#rs) in browsers.
 
-If typeof *shp* or *dbf* is “string”, in Node, the files are read from the [file system](https://nodejs.org/api/fs.html); in browsers, the files are read using [streaming](https://www.chromestatus.com/feature/5804334163951616) [fetch](https://fetch.spec.whatwg.org/), if available, and falling back to [XMLHttpRequest](https://xhr.spec.whatwg.org/).
+If typeof *shp* or *dbf* is “string”, in Node, the files are read from the [file system](https://nodejs.org/api/fs.html); in browsers, the files are read using [streaming](https://www.chromestatus.com/feature/5804334163951616) [fetch](https://fetch.spec.whatwg.org/), if available, and falling back to [XMLHttpRequest](https://xhr.spec.whatwg.org/). See [path-source](https://github.com/mbostock/path-source) for more.
 
 The follwing options are supported:
 

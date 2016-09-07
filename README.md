@@ -15,19 +15,11 @@ shapefile.open("example.shp")
   .catch(error => console.error(error.stack));
 ```
 
-In a browser (TODO inline stream-source, array-source, slice-source, path-source):
+In a browser:
 
 ```html
 <!DOCTYPE html>
-<script>
-
-sources = {stream: function(source) { return source; }};
-
-</script>
-<script src="https://unpkg.com/array-source@0"></script>
-<script src="https://unpkg.com/slice-source@0"></script>
-<script src="https://unpkg.com/path-source@0"></script>
-<script src="https://unpkg.com/shapefile@0"></script>
+<script src="https://unpkg.com/shapefile@0.5"></script>
 <script>
 
 shapefile.open("https://cdn.rawgit.com/mbostock/shapefile/master/test/points.shp")

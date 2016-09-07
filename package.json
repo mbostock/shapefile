@@ -26,7 +26,7 @@
   },
   "scripts": {
     "test": "tape 'test/**/*-test.js'",
-    "prepublish": "rm -rf dist && mkdir dist && cp index.node.js dist/shapefile.node.js && rollup -g path-source,array-source,stream-source,slice-source -f cjs -- index.js | tail -n +2 >> dist/shapefile.node.js && rollup --banner \"$(preamble)\" -f umd -g array-source:sources.array,stream-source:sources.stream,path-source:sources.path,slice-source:sources.slice -n shapefile -o dist/shapefile.js -- index.js && uglifyjs --preamble \"$(preamble)\" -o dist/shapefile.min.js -cm -- dist/shapefile.js",
+    "prepublish": "rm -rf dist && mkdir dist && cp index.node.js dist/shapefile.node.js && rollup -g path-source,array-source,stream-source,slice-source -f cjs -- index.js | tail -n +2 >> dist/shapefile.node.js && rollup -c --banner \"$(preamble)\" -f umd -n shapefile -o dist/shapefile.js -- index.js && uglifyjs --preamble \"$(preamble)\" -o dist/shapefile.min.js -cm -- dist/shapefile.js",
     "postpublish": "git push && git push --tags"
   },
   "dependencies": {
@@ -40,6 +40,7 @@
   "devDependencies": {
     "package-preamble": "0.0",
     "rollup": "0.34",
+    "rollup-plugin-node-resolve": "2",
     "tape": "4",
     "uglify-js": "2"
   }

@@ -26,13 +26,15 @@
   },
   "scripts": {
     "test": "tape 'test/**/*-test.js'",
-    "prepublish": "rm -rf dist && mkdir dist && rollup -f cjs -g slice-source:sources.slice -o dist/shapefile.node.js -- shapefile/index.js && rollup --banner \"$(preamble)\" -f umd -g path-source:sources.path,slice-source:sources.slice -n shapefile -o dist/shapefile.js -- index.js && uglifyjs --preamble \"$(preamble)\" -o dist/shapefile.min.js -cm -- dist/shapefile.js",
+    "prepublish": "rm -rf dist && mkdir dist && rollup -f cjs -g slice-source:sources.slice -o dist/shapefile.node.js -- shapefile/index.js && rollup --banner \"$(preamble)\" -f umd -g array-source:sources.array,stream-source:sources.stream,path-source:sources.path,slice-source:sources.slice -n shapefile -o dist/shapefile.js -- index.js && uglifyjs --preamble \"$(preamble)\" -o dist/shapefile.min.js -cm -- dist/shapefile.js",
     "postpublish": "git push && git push --tags"
   },
   "dependencies": {
+    "array-source": "0.0",
     "commander": "2",
     "path-source": "0.1",
     "slice-source": "0.4",
+    "stream-source": "0.3",
     "text-encoding": "0.6"
   },
   "devDependencies": {

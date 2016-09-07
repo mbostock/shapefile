@@ -9,7 +9,7 @@ export default function() {
       done: false,
       value: {
         type: "Feature",
-        properties: that._properties(dbf.value),
+        properties: that._properties(dbf && dbf.value),
         geometry: that._geometry(shp.value)
       }
     };

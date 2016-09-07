@@ -9,7 +9,7 @@ import shapefile_read from "./read";
 export default function(shpSource, dbfSource, decoder) {
   return Promise.all([
     shp(shpSource),
-    dbf(dbfSource, decoder)
+    dbfSource && dbf(dbfSource, decoder)
   ]).then(function(sources) {
     return new Shapefile(sources[0], sources[1]);
   });

@@ -13,7 +13,7 @@
     "url": "https://bost.ocks.org/mike"
   },
   "browser": "dist/shapefile.js",
-  "main": "index.node.js",
+  "main": "dist/shapefile.node.js",
   "module": "index.js",
   "repository": {
     "type": "git",
@@ -26,7 +26,7 @@
   },
   "scripts": {
     "test": "tape 'test/**/*-test.js'",
-    "prepublish": "rm -rf dist && mkdir dist && rollup -f cjs -g slice-source:sources.slice -o dist/shapefile.node.js -- shapefile/index.js && rollup --banner \"$(preamble)\" -f umd -g array-source:sources.array,stream-source:sources.stream,path-source:sources.path,slice-source:sources.slice -n shapefile -o dist/shapefile.js -- index.js && uglifyjs --preamble \"$(preamble)\" -o dist/shapefile.min.js -cm -- dist/shapefile.js",
+    "prepublish": "rm -rf dist && mkdir dist && cp index.node.js dist/shapefile.node.js && rollup -g path-source,array-source,stream-source,slice-source -f cjs -- index.js | tail -n +2 >> dist/shapefile.node.js && rollup --banner \"$(preamble)\" -f umd -g array-source:sources.array,stream-source:sources.stream,path-source:sources.path,slice-source:sources.slice -n shapefile -o dist/shapefile.js -- index.js && uglifyjs --preamble \"$(preamble)\" -o dist/shapefile.min.js -cm -- dist/shapefile.js",
     "postpublish": "git push && git push --tags"
   },
   "dependencies": {

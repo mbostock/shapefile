@@ -59,7 +59,7 @@ Returns a promise that yields a [GeoJSON feature collection](http://geojson.org/
 
 <a name="source_bbox" href="#source_bbox">#</a> <i>source</i>.<b>bbox</b>
 
-…
+The shapefile’s bounding box [*xmin*, *ymin*, *xmax*, *ymax*], where x and y represent longitude and latitude in spherical coordinates.
 
 <a name="source_read" href="#source_read">#</a> <i>source</i>.<b>read</b>() [<>](https://github.com/mbostock/shapefile/blob/master/shapefile/read.js "Source")
 

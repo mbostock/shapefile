@@ -51,15 +51,13 @@ The follwing options are supported:
 * `encoding` - the dBASE character encoding; defaults to “windows-1252”
 * `highWaterMark` - in Node, the size of the stream’s internal buffer; defaults to 65536
 
-The yielded *collection* has a bbox property representing the bounding box of all records in this shapefile. The bounding box is specified as [xmin, ymin, xmax, ymax], where *x* and *y* represent longitude and latitude in spherical coordinates.
-
 <a name="read" href="#read">#</a> shapefile.<b>read</b>(<i>shp</i>[, <i>dbf</i>[, <i>options</i>]]) [<>](https://github.com/mbostock/shapefile/blob/master/index.js#L31 "Source")
 
-Returns a promise that yields a [GeoJSON feature collection](http://geojson.org/geojson-spec.html#feature-collection-objects) for specified shapefile *shp* and dBASE table file *dbf*. The meaning of the arguments is the same as [shapefile.open](#open). This is a convenience API for reading an entire shapefile in one go; use this method if you don’t mind putting the whole shapefile in memory.
+Returns a promise that yields a [GeoJSON feature collection](http://geojson.org/geojson-spec.html#feature-collection-objects) for specified shapefile *shp* and dBASE table file *dbf*. The meaning of the arguments is the same as [shapefile.open](#open). This is a convenience API for reading an entire shapefile in one go; use this method if you don’t mind putting the whole shapefile in memory. The yielded *collection* has a bbox property representing the bounding box of all records in this shapefile. The bounding box is specified as [*xmin*, *ymin*, *xmax*, *ymax*], where *x* and *y* represent longitude and latitude in spherical coordinates.
 
 <a name="source_bbox" href="#source_bbox">#</a> <i>source</i>.<b>bbox</b>
 
-The shapefile’s bounding box [*xmin*, *ymin*, *xmax*, *ymax*], where x and y represent longitude and latitude in spherical coordinates.
+The shapefile’s bounding box [*xmin*, *ymin*, *xmax*, *ymax*], where *x* and *y* represent longitude and latitude in spherical coordinates.
 
 <a name="source_read" href="#source_read">#</a> <i>source</i>.<b>read</b>() [<>](https://github.com/mbostock/shapefile/blob/master/shapefile/read.js "Source")
 

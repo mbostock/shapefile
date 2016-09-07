@@ -34,6 +34,8 @@ shapefile.open("https://cdn.rawgit.com/mbostock/shapefile/master/test/points.shp
 </script>
 ```
 
+For a live example, see [bl.ocks.org/2dd741099154a4da55a7db31fd96a892](http://bl.ocks.org/mbostock/2dd741099154a4da55a7db31fd96a892).
+
 This parser implementation is based on the [ESRI Shapefile Technical Description](http://www.esri.com/library/whitepapers/pdfs/shapefile.pdf) and [dBASE Table File Format](http://www.digitalpreservation.gov/formats/fdd/fdd000325.shtml). Caveat emptor: this is a work in progress and does not currently support all shapefile geometry types. It only supports dBASE III and has little error checking. Please contribute if you want to help!
 
 ## API Reference

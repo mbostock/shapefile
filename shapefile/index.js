@@ -1,23 +1,28 @@
 import dbf from "../dbf/index";
-import noproperties from "../dbf/noproperties";
 import shp from "../shp/index";
-import nogeometry from "../shp/nogeometry";
+import properties from "../dbf/properties";
+import noproperties from "../dbf/noproperties";
+import geometry from "../shp/geometry";
 import shapefile_cancel from "./cancel";
-import shapefile_header from "./header";
-import shapefile_record from "./record";
+import shapefile_read from "./read";
 
 export default function(shpSource, dbfSource, decoder) {
-  return new Shapefile(shpSource, dbfSource, decoder);
+  return Promise.all([
+    shp(shpSource),
+    dbf(dbfSource, decoder)
+  ]).then(function(sources) {
+    return new Shapefile(sources[0], sources[1]);
+  });
 }
 
-function Shapefile(shpSource, dbfSource, decoder) {
-  this._shp = shp(shpSource);
-  this._dbf = dbf(dbfSource, decoder);
-  this._properties = noproperties;
-  this._geometry = nogeometry;
+function Shapefile(shp, dbf) {
+  this._shp = shp;
+  this._dbf = dbf;
+  this._properties = dbf ? properties(dbf.fields) : noproperties;
+  this._geometry = geometry(shp.shapeType);
+  this.bbox = shp.box;
 }
 
 var prototype = Shapefile.prototype;
-prototype.header = shapefile_header;
-prototype.record = shapefile_record;
+prototype.read = shapefile_read;
 prototype.cancel = shapefile_cancel;

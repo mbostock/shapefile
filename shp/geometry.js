@@ -1,7 +1,5 @@
-import nogeometry from "./nogeometry";
-
 var shapeTypes = {
-  0: nogeometry,
+  0: none,
   1: point,
   3: polyline,
   5: polygon,
@@ -11,6 +9,10 @@ var shapeTypes = {
   15: polygon, // PolygonZ
   18: multipoint // MultiPointZ
 };
+
+function none() {
+  return null;
+}
 
 export default function geometry(shapeType) {
   if (!(shapeType in shapeTypes)) throw new Error("unknown shape type: " + shapeType);

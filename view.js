@@ -1,3 +1,3 @@
-export default function(result) {
-  return new DataView(result.value.buffer, result.value.byteOffset, result.value.byteLength);
+export default function(array) {
+  return new DataView(array.buffer, array.byteOffset, array.byteLength);
 }

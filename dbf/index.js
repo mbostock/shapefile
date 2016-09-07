@@ -2,8 +2,8 @@ import dbf_cancel from "./cancel";
 import dbf_header from "./header";
 import dbf_record from "./record";
 
-export default function(source, options) {
-  return new Dbf(source, options.decoder);
+export default function(source, decoder) {
+  return new Dbf(source, decoder);
 };
 
 function Dbf(source, decoder) {

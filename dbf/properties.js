@@ -1,3 +1,5 @@
 export default function(fields) {
-  return new Function("d", `return {${fields.map((f, i) => `${JSON.stringify(f.name)}:d[${i}]`)}};`);
+  return new Function("d", "return {"
+      + fields.map(function(field, i) { return JSON.stringify(field.name) + ":d[" + i + "]"; })
+      + "};");
 }

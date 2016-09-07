@@ -1,5 +1,7 @@
+import nogeometry from "./nogeometry";
+
 var shapeTypes = {
-  0: none,
+  0: nogeometry,
   1: point,
   3: polyline,
   5: polygon,
@@ -14,10 +16,6 @@ export default function geometry(shapeType) {
   if (!(shapeType in shapeTypes)) throw new Error("unknown shape type: " + shapeType);
   var convert = shapeTypes[shapeType];
   return function(record) { return record.shapeType ? convert(record) : null; };
-}
-
-function none() {
-  return null;
 }
 
 function point(record) {

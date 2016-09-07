@@ -4,7 +4,10 @@ var path = require("path-source"),
     shapefile = require("./dist/shapefile.node"),
     TextDecoder = require("text-encoding").TextDecoder;
 
-exports.open = function(shp, dbf, options) {
+exports.open = open;
+exports.read = read;
+
+function open(shp, dbf, options) {
   if (typeof dbf === "string") {
     dbf = path(dbf, options);
   } else if (dbf instanceof ArrayBuffer || dbf instanceof Uint8Array) {
@@ -29,4 +32,15 @@ exports.open = function(shp, dbf, options) {
     if (options && options.encoding != null) encoding = options.encoding;
     return shapefile(shp, dbf, dbf && new TextDecoder(encoding));
   });
-};
+}
+
+function read(shp, dbf, options) {
+  return open(shp, dbf, options).then(function(source) {
+    var features = [], collection = {type: "FeatureCollection", features: features, bbox: source.bbox};
+    return source.read().then(function read(result) {
+      if (result.done) return collection;
+      features.push(result.value);
+      return source.read().then(read);
+    });
+  });
+}

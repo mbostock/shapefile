@@ -29,3 +29,14 @@ export function open(shp, dbf, options) {
     return shapefile(shp, dbf, dbf && new TextDecoder(encoding));
   });
 }
+
+export function read(shp, dbf, options) {
+  return open(shp, dbf, options).then(function(source) {
+    var features = [], collection = {type: "FeatureCollection", features: features, bbox: source.bbox};
+    return source.read().then(function read(result) {
+      if (result.done) return collection;
+      features.push(result.value);
+      return source.read().then(read);
+    });
+  });
+}

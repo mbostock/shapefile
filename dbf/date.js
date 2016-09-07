@@ -1,3 +1,3 @@
-module.exports = function(d) {
-  return new Date(+d.substring(0, 4), d.substring(4, 6) - 1, +d.substring(6, 8));
-};
+export default function(value) {
+  return new Date(+value.substring(0, 4), value.substring(4, 6) - 1, +value.substring(6, 8));
+}

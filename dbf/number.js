@@ -1,3 +1,3 @@
-module.exports = function(d) {
-  return isNaN(d = +d) ? null : d;
-};
+export default function(value) {
+  return isNaN(value = +value) ? null : value;
+}

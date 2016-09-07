@@ -24,12 +24,13 @@
   },
   "scripts": {
     "test": "tape 'test/**/*-test.js'",
-    "prepublish": "rm -rf dist && mkdir dist && rollup --banner \"$(preamble)\" -f umd -n shapefile -o dist/shapefile.js -- shp/index.js && uglifyjs --preamble \"$(preamble)\" -o dist/shapefile.min.js -cm -- dist/shapefile.js",
+    "prepublish": "rm -rf dist && mkdir dist && rollup --banner \"$(preamble)\" -f umd -n shapefile -o dist/shapefile.js -- dbf/index.js && uglifyjs --preamble \"$(preamble)\" -o dist/shapefile.min.js -cm -- dist/shapefile.js",
     "postpublish": "git push && git push --tags"
   },
   "dependencies": {
     "commander": "2",
-    "path-source": "0.0"
+    "path-source": "0.0",
+    "text-encoding": "0.6"
   },
   "devDependencies": {
     "package-preamble": "0.0",

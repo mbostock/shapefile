@@ -1,3 +1,3 @@
-module.exports = function(d) {
-  return d.trim() || null;
-};
+export default function(value) {
+  return value.trim() || null;
+}

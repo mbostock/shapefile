@@ -3,7 +3,7 @@ import shp_cancel from "./cancel";
 import shp_header from "./header";
 import shp_record from "./record";
 
-export default function shp(source) {
+export default function(source) {
   return new Shp(source);
 }
 

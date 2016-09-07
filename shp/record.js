@@ -3,7 +3,7 @@ import readNull from "./null";
 
 export default function record() {
   var that = this;
-  return this._source.read(8).then(function(result) {
+  return that._source.read(8).then(function(result) {
     if (result.done) return null;
     var header = view(result);
     return that._source.read(header.getInt32(4, false) * 2).then(function(result) { // TODO optimize read

@@ -26,7 +26,7 @@ var types = {
 
 export default function header() {
   var that = this;
-  return this._source.read(100).then(function(result) {
+  return that._source.read(100).then(function(result) {
     var header = view(result), type = header.getInt32(32, true);
     if (!(type in types)) throw new Error("unsupported shape type: " + type);
     that._type = types[type];

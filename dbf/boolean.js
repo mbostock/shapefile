@@ -1,5 +1,5 @@
-module.exports = function(d) {
-  return /^[nf]$/i.test(d) ? false
-      : /^[yt]$/i.test(d) ? true
+export default function(value) {
+  return /^[nf]$/i.test(value) ? false
+      : /^[yt]$/i.test(value) ? true
       : null;
-};
+}

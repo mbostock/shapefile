@@ -1,88 +1,81 @@
 # Streaming Shapefile Parser
 
-Based on the [ESRI Shapefile Technical Description](http://www.esri.com/library/whitepapers/pdfs/shapefile.pdf) and [dBASE Table File Format](http://www.digitalpreservation.gov/formats/fdd/fdd000325.shtml). Caveat emptor: this library is a work in progress and does not currently support all shapefile geometry types. It also only supports dBASE III and has no error checking. Please contribute if you want to help!
+In Node:
+
+```js
+var shapefile = require("shapefile");
+
+shapefile.open("example.shp")
+  .then(source => source.read()
+    .then(function log(result) {
+      if (result.done) return;
+      console.log(result.value);
+      return source.read().then(log);
+    }))
+  .catch(error => console.error(error.stack));
+```
+
+In a browser (TODO inline stream-source, array-source, slice-source, path-source):
+
+```html
+<!DOCTYPE html>
+<script>
+
+sources = {stream: function(source) { return source; }};
+
+</script>
+<script src="https://unpkg.com/array-source@0"></script>
+<script src="https://unpkg.com/slice-source@0"></script>
+<script src="https://unpkg.com/path-source@0"></script>
+<script src="https://unpkg.com/shapefile@0"></script>
+<script>
+
+shapefile.open("https://cdn.rawgit.com/mbostock/shapefile/master/test/points.shp")
+  .then(source => source.read()
+    .then(function log(result) {
+      if (result.done) return;
+      console.log(result.value);
+      return source.read().then(log);
+    }))
+  .catch(error => console.error(error.stack));
+
+</script>
+```
+
+This parser implementation is based on the [ESRI Shapefile Technical Description](http://www.esri.com/library/whitepapers/pdfs/shapefile.pdf) and [dBASE Table File Format](http://www.digitalpreservation.gov/formats/fdd/fdd000325.shtml). Caveat emptor: this is a work in progress and does not currently support all shapefile geometry types. It only supports dBASE III and has little error checking. Please contribute if you want to help!
 
 ## API Reference
 
-<a name="read" href="#read">#</a> shapefile.<b>read</b>(<i>path</i>[, <i>options</i>])
+<a name="open" href="#open">#</a> shapefile.<b>open</b>(<i>shp</i>[, <i>dbf</i>[, <i>options</i>]]) [<>](https://github.com/mbostock/shapefile/blob/master/index.js#L6 "Source")
 
-Returns a promise that yields a [GeoJSON feature collection](http://geojson.org/geojson-spec.html#feature-collection-objects) for the shapefile at the given *path*. The *path* should include the extension “.shp”. For example:
+Returns a promise that yields an open shapefile *source*.
 
-```js
-shapefile.read("example.shp")
-  .then((collection) => console.log(collection))
-  .catch((error) => console.error(error.stack));
-```
+If typeof *shp* is “string”, opens the shapefile at the specified *shp* path. If *shp* does not have a “.shp” extension, it is implicitly added. If *shp* instanceof ArrayBuffer or *shp* instanceof Uint8Array, reads the specified in-memory shapefile. Otherwise, *shp* must be a [Node readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) in Node or a [WhatWG standard readable stream](https://streams.spec.whatwg.org/#rs) in browsers.
 
-The supported options are:
+If typeof *dbf* is “string”, opens the dBASE file at the specified *dbf* path. If *dbf* does not have a “.dbf” extension, it is implicitly added. If *dbf* instanceof ArrayBuffer or *dbf* instanceof Uint8Array, reads the specified in-memory dBASE file. If *dbf* is undefined and *shp* is a string, then *dbf* defaults to *shp* with the “.shp” extension replaced with “.dbf”; in this case, no error is thrown if there is no dBASE file at the resulting implied *dbf*. If *dbf* is undefined and *shp* is not a string, or if *dbf* is null, then no dBASE file is read, and the resulting GeoJSON features will have empty properties. Otherwise, *dbf* must be a [Node readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) in Node or a [WhatWG standard readable stream](https://streams.spec.whatwg.org/#rs) in browsers.
 
-* `encoding` - the DBF character encoding (defaults to ISO-8859-1)
-* `ignoreProperties` - if true, don’t read properties (faster; defaults to false)
+The follwing options are supported:
+
+* `encoding` - the dBASE character encoding; defaults to “windows-1252”
+* `highWaterMark` - in Node, the size of the stream’s internal buffer; defaults to 65536
 
 The yielded *collection* has a bbox property representing the bounding box of all records in this shapefile. The bounding box is specified as [xmin, ymin, xmax, ymax], where *x* and *y* represent longitude and latitude in spherical coordinates.
 
-This is a convenience API for reading an entire shapefile in one go; use this method if you don’t mind putting the whole shapefile in memory, or use <a href="#open">shapefile.open</a> to process records individually.
+<a name="read" href="#read">#</a> shapefile.<b>read</b>(<i>shp</i>[, <i>dbf</i>[, <i>options</i>]]) [<>](https://github.com/mbostock/shapefile/blob/master/index.js#L31 "Source")
 
-<a name="source" href="#source">#</a> shapefile.<b>source</b>(<i>options</i>)
+Returns a promise that yields a [GeoJSON feature collection](http://geojson.org/geojson-spec.html#feature-collection-objects) for specified shapefile *shp* and dBASE table file *dbf*. The meaning of the arguments is the same as [shapefile.open](#open). This is a convenience API for reading an entire shapefile in one go; use this method if you don’t mind putting the whole shapefile in memory.
 
-Returns a new shapefile source. The source is initially closed; use [shapefile.open](#open) or [*source*.open](#source_open) to open a shapefile. The supported options are:
+<a name="source_bbox" href="#source_bbox">#</a> <i>source</i>.<b>bbox</b>
 
-* `size` - the internal buffer size, akin to Node’s highWaterMark
-* `encoding` - the DBF character encoding (defaults to ISO-8859-1)
-* `ignoreProperties` - if true, don’t read properties (faster; defaults to false)
+…
 
-<a name="open" href="#open">#</a> shapefile.<b>open</b>(<i>path</i>)
+<a name="source_read" href="#source_read">#</a> <i>source</i>.<b>read</b>() [<>](https://github.com/mbostock/shapefile/blob/master/shapefile/read.js "Source")
 
-Returns a promise that yields an open shapefile source for the specified *path* and optional *options*. A convenience method equivalent to:
+Returns a Promise for the next record from the underlying stream. The yielded result is an object with the following properties:
 
-```js
-shapefile.source(options).open(path)
-```
+* `value` - a [GeoJSON feature](http://geojson.org/geojson-spec.html#feature-objects), or undefined if the stream ended
+* `done` - a boolean which is true if the stream ended
 
-For example:
+<a name="source_cancel" href="#source_cancel">#</a> <i>source</i>.<b>cancel</b>() [<>](https://github.com/mbostock/shapefile/blob/master/shapefile/cancel.js "Source")
 
-```js
-shapefile.open("example.shp")
-  .then((source) => source.close())
-  .catch((error) => console.error(error.stack));
-```
-
-<a name="source_open" href="#source_open">#</a> <i>source</i>.<b>open</b>(<i>path</i>)
-
-Returns a promise that yields an open shapefile source for the specified *path*, positioned at the start of the shapefile. Yields an error if this source is not closed or if there was an error opening the underlying shapefile. In this case, this source is still considered closed, and you can use this source to open another shapefile if desired.
-
-After opening, you can call [*source*.close](#source_close) to close the shapefile. After closing, you can re-open a source with the same or different path, if desired. If this source was created using [shapefile.open](#open), the yielded source is already open, and you don’t need to call this method.
-
-<a name="source_header" href="#source_header">#</a> <i>source</i>.<b>header</b>()
-
-Returns a promise the yields the shapefile header. This method should be called after [opening](#source_open) the shapefile, before any [records](#source_record) are read. For example:
-
-```js
-shapefile.open("example.shp")
-  .then((source) => source.header()
-    .then((header) => console.log(header))
-    .catch((error) => source.close().then(() => { throw error; }))
-    .then(() => source.close()))
-  .catch((error) => console.error(error.stack));
-```
-
-The header object has a bbox property representing the bounding box of all records in this shapefile. The bounding box is specified as [xmin, ymin, xmax, ymax], where *x* and *y* represent longitude and latitude in spherical coordinates.
-
-<a name="source_record" href="#source_record">#</a> <i>source</i>.<b>record</b>()
-
-Returns a promise the yields the next shapefile record as a [GeoJSON feature](http://geojson.org/geojson-spec.html#feature-objects), or null if the end of the shapefile was reached. This method should be called after reading the shapefile [header](#source_header). For example:
-
-```js
-shapefile.open("example.shp")
-  .then((source) => source.header()
-    .then((header) => console.log(header))
-    .then(function repeat() { return source.record()
-      .then((record) => record && (console.log(record), repeat())); })
-    .catch((error) => source.close().then(() => { throw error; }))
-    .then(() => source.close()))
-  .catch((error) => console.error(error.stack));
-```
-
-<a name="source_close" href="#source_close">#</a> <i>source</i>.<b>close</b>()
-
-Returns a promise that yields a closed shapefile source.
+Returns a Promise which is resolved when the underlying stream has been destroyed.

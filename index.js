@@ -5,6 +5,7 @@ import shapefile from "./shapefile/index";
 
 export function open(shp, dbf, options) {
   if (typeof dbf === "string") {
+    if (!/\.dbf$/.test(dbf)) dbf += ".dbf";
     dbf = path(dbf, options);
   } else if (dbf instanceof ArrayBuffer || dbf instanceof Uint8Array) {
     dbf = array(dbf);
@@ -12,11 +13,8 @@ export function open(shp, dbf, options) {
     dbf = stream(dbf);
   }
   if (typeof shp === "string") {
-    if (dbf === undefined) {
-      if (!/\.shp$/.test(shp)) dbf = shp + ".dbf", shp += ".shp";
-      else dbf = shp.substring(0, shp.length - 4) + ".dbf";
-      dbf = path(dbf, options).catch(function(ignore) { return null; });
-    }
+    if (!/\.shp$/.test(shp)) shp += ".shp";
+    if (dbf === undefined) dbf = path(shp.substring(0, shp.length - 4) + ".dbf", options).catch(function() {});
     shp = path(shp, options);
   } else if (shp instanceof ArrayBuffer || shp instanceof Uint8Array) {
     shp = array(shp);

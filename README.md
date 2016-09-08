@@ -80,30 +80,30 @@ Returns a Promise which is resolved when the underlying stream has been destroye
 
 Converts the specified shapefile *file* to GeoJSON.
 
-<a name="shp2json_help" href="shp2json_help">#</a> <b>-h</b>, <b>--help</b>
+<a name="shp2json_help" href="shp2json_help">#</a> shp2json <b>-h</b>, <b>--help</b>
 
 Output usage information.
 
-<a name="shp2json_version" href="shp2json_version">#</a> <b>-V</b>, <b>--version</b>
+<a name="shp2json_version" href="shp2json_version">#</a> shp2json <b>-V</b>, <b>--version</b>
 
 Output the version number.
 
-<a name="shp2json_out" href="shp2json_out">#</a> <b>-o</b>, <b>--out</b> <i>file</i>
+<a name="shp2json_out" href="shp2json_out">#</a> shp2json <b>-o</b>, <b>--out</b> <i>file</i>
 
 Specify the output file name. Defaults to “-” for stdout.
 
-<a name="shp2json_newline_delimited" href="shp2json_newline_delimited">#</a> <b>-n</b>, <b>--newline-delimited</b>
+<a name="shp2json_newline_delimited" href="shp2json_newline_delimited">#</a> shp2json <b>-n</b>, <b>--newline-delimited</b>
 
 Output [newline-delimited JSON](http://ndjson.org/), with one feature or [geometry](#shp2json_geometry) per line.
 
-<a name="shp2json_geometry" href="shp2json_geometry">#</a> <b>-g</b>, <b>--geometry</b>
+<a name="shp2json_geometry" href="shp2json_geometry">#</a> shp2json <b>-g</b>, <b>--geometry</b>
 
 Output a [geometry collection](http://geojson.org/geojson-spec.html#geometrycollection) instead of a [feature collection](http://geojson.org/geojson-spec.html#feature-collection-objects) or, in conjuction with [--newline-delimited](#shp2json_newline_delimited), [geometry objects](http://geojson.org/geojson-spec.html#geometry-objects) instead of [feature objects](http://geojson.org/geojson-spec.html#feature-objects). Implies [--ignore-properties](#shp2json_ignore_properties).
 
-<a name="shp2json_ignore_properties" href="shp2json_ignore_properties">#</a> <b>--ignore-properties</b>
+<a name="shp2json_ignore_properties" href="shp2json_ignore_properties">#</a> shp2json <b>--ignore-properties</b>
 
 Ignore the corresponding dBASE table file (.dbf), if any. Output features will have an empty properties object.
 
-<a name="shp2json_encoding" href="shp2json_encoding">#</a> <b>--encoding</b> <i>encoding</i>
+<a name="shp2json_encoding" href="shp2json_encoding">#</a> shp2json <b>--encoding</b> <i>encoding</i>
 
 Specify the dBASE table file character encoding. Defaults to “windows-1252”.

@@ -7,7 +7,9 @@ var fs = require('fs'),
 commander
     .version(require('../package.json').version)
     .usage('[options] <file>')
-    .option('-o, --out <file>', 'output GeoJSON file name; - for stdout')
+    .option('-o, --out <file>', 'output file name; - for stdout')
+    .option('-n, --newline-delimited', 'output newline-delimited JSON')
+    .option('-g, --geometry', 'output geometries (implies --ignore-properties)')
     .option('--ignore-properties', 'don’t read shapefile properties (.dbf)')
     .option('--encoding <encoding>', 'character encoding for shapefile properties (.dbf)')
     .parse(process.argv);
@@ -17,31 +19,74 @@ if (commander.args.length < 1) {
   process.exit(1);
 }
 
-var encoding = commander.encoding,
-    ignoreProperties = commander.ignoreProperties,
-    out = ([undefined, true, '-'].indexOf(commander.out) >= 0) ? process.stdout : fs.createWriteStream(commander.out);
+var out = ([undefined, true, '-'].indexOf(commander.out) >= 0) ? process.stdout : fs.createWriteStream(commander.out);
 
-shapefile.open(commander.args[0], {encoding, ignoreProperties})
-  .then((source) => source.header()
-    .then((header) => {
-      out.write('{"type":"FeatureCollection","bbox":');
-      out.write(JSON.stringify(header.bbox));
-      out.write('"features":[');
-      return source.record();
-    })
-    .then((record) => {
-      if (!record) return;
+shapefile.open(commander.args[0], commander.geometry || commander.ignoreProperties ? null : undefined, {encoding: commander.encoding})
+  .then(commander.newlineDelimited
+      ? (commander.geometry ? writeNewlineDelimitedGeometries : writeNewlineDelimitedFeatures)
+      : (commander.geometry ? writeGeometryCollection : writeFeatureCollection))
+  .catch(function(error) { console.error(error.stack); });
+
+function writeNewlineDelimitedGeometries(source) {
+  return source.read().then(function repeat(result) {
+    if (result.done) return;
+    out.write(JSON.stringify(result.value.geometry));
+    out.write('\n');
+    return source.read().then(repeat);
+  }).then(function() {
+    if (out !== process.stdout) out.end();
+  });
+}
+
+function writeNewlineDelimitedFeatures(source) {
+  return source.read().then(function repeat(result) {
+    if (result.done) return;
+    out.write(JSON.stringify(result.value));
+    out.write('\n');
+    return source.read().then(repeat);
+  }).then(function() {
+    if (out !== process.stdout) out.end();
+  });
+}
+
+function writeGeometryCollection(source) {
+  out.write('{"type":"GeometryCollection","bbox":');
+  out.write(JSON.stringify(source.bbox));
+  out.write(',"geometries":[');
+  return source.read().then(function(result) {
+    if (result.done) return;
+    out.write('\n');
+    out.write(JSON.stringify(result.value.geometry));
+    return source.read().then(function repeat(result) {
+      if (result.done) return;
+      out.write(',\n');
+      out.write(JSON.stringify(result.value.geometry));
+      return source.read().then(repeat);
+    }).then(function() {
       out.write('\n');
-      out.write(JSON.stringify(record));
-      return (function repeat() {
-        return source.record().then((record) => {
-          if (!record) return;
-          out.write(',\n');
-          out.write(JSON.stringify(record));
-          return repeat();
-        });
-      })().then(() => out.write('\n'));
-    })
-    .catch((error) => source.close().then(() => { throw error; }))
-    .then(() => (out[out === process.stdout ? 'write' : 'end'](']}\n'), source.close())))
-  .catch((error) => console.error(error.stack));
+    });
+  }).then(function() {
+    out[out === process.stdout ? 'write' : 'end'](']}\n');
+  });
+}
+
+function writeFeatureCollection(source) {
+  out.write('{"type":"FeatureCollection","bbox":');
+  out.write(JSON.stringify(source.bbox));
+  out.write(',"features":[');
+  return source.read().then(function(result) {
+    if (result.done) return;
+    out.write('\n');
+    out.write(JSON.stringify(result.value));
+    return source.read().then(function repeat(result) {
+      if (result.done) return;
+      out.write(',\n');
+      out.write(JSON.stringify(result.value));
+      return source.read().then(repeat);
+    }).then(function() {
+      out.write('\n');
+    });
+  }).then(function() {
+    out[out === process.stdout ? 'write' : 'end'](']}\n');
+  });
+}

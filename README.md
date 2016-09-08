@@ -78,7 +78,31 @@ Returns a Promise which is resolved when the underlying stream has been destroye
 
 <a name="shp2json" href="#shp2json">#</a> <b>shp2json</b> [<i>options…</i>] <i>file</i>
 
-Converts the specified shapefile *file* to a GeoJSON feature collection, geometry collection, or newline-delimited features or geometries.
+Converts the specified shapefile *file* to a GeoJSON. For example, to convert to a feature collection:
+
+```
+shp2json example.shp
+```
+
+To convert to a geometry collection:
+
+```
+shp2json -g example.shp
+```
+
+To convert to newline-delimited features:
+
+```
+shp2json -n example.shp
+```
+
+To convert to newline-delimited geometries:
+
+```
+shp2json -ng example.shp
+```
+
+When [--geometry](#shp2json_geometry) or [--ignore-properties](#shp2json_ignore_properties) is not used, the shapefile is joined to the dBASE table file (.dbf) file corresonding to the specified shapefile *file*, if any.
 
 <a name="shp2json_help" href="shp2json_help">#</a> shp2json <b>-h</b>
 <br><a href="shp2json_help">#</a> shp2json <b>--help</b>

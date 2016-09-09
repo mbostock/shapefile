@@ -18,7 +18,16 @@ if (commander.args.length < 1) commander.args[0] = "-";
 
 var out = commander.out === "-" ? process.stdout : fs.createWriteStream(commander.out);
 
-shapefile.open(commander.args[0] === "-" ? process.stdin : commander.args[0], commander.geometry || commander.ignoreProperties ? null : undefined, {encoding: commander.encoding})
+out.on("error", function(error) {
+  if (error.code === 'EPIPE' || error.errno === 'EPIPE') {
+    process.exit(0);
+  }
+});
+
+shapefile.open(
+    commander.args[0] === "-" ? process.stdin : commander.args[0],
+    commander.geometry || commander.ignoreProperties ? null : undefined,
+    {encoding: commander.encoding})
   .then(commander.newlineDelimited
       ? (commander.geometry ? writeNewlineDelimitedGeometries : writeNewlineDelimitedFeatures)
       : (commander.geometry ? writeGeometryCollection : writeFeatureCollection))

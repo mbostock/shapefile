@@ -20,7 +20,7 @@ function Shapefile(shp, dbf) {
   this._dbf = dbf;
   this._properties = dbf ? properties(dbf.fields) : noproperties;
   this._geometry = geometry(shp.shapeType);
-  this.bbox = shp.box;
+  this.bbox = shp.bbox;
 }
 
 var prototype = Shapefile.prototype;

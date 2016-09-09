@@ -8,7 +8,7 @@ testConversion("number-property");
 testConversion("string-property");
 testConversion("mixed-properties");
 testConversion("date-property");
-testConversion("utf8-property", {encoding: "utf-8"});
+testConversion("utf8-property", {encoding: "utf8"});
 testConversion("latin1-property");
 testConversion("points");
 testConversion("multipoints");
@@ -18,10 +18,10 @@ testConversion("null");
 testConversion("ignore-properties", {ignoreProperties: true});
 
 function testConversion(name, options) {
-  tape(name, function(test) {
-    shapefile.read("./test/" + name + ".shp", undefined, options)
+  tape("shapefile.read(" + name + ")", function(test) {
+    shapefile.read("test/" + name + ".shp", undefined, options)
       .then(actual => {
-        var expected = JSON.parse(fs.readFileSync("./test/" + name + ".json", "utf-8"));
+        var expected = JSON.parse(fs.readFileSync("test/" + name + ".json", "utf8"));
         actual.features.forEach(fixActualProperties);
         expected.features.forEach(fixExpectedProperties);
         test.deepEqual(actual, expected);

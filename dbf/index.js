@@ -17,9 +17,6 @@ function Dbf(source, decoder, head, body) {
   this._source = source;
   this._decode = decoder.decode.bind(decoder);
   this._recordLength = head.getUint16(10, true);
-  this.version = head.getUint8(0);
-  this.date = new Date(1900 + head.getUint8(1), head.getUint8(2) - 1, head.getUint8(3));
-  this.length = head.getUint32(4, true);
   this.fields = [];
   for (var n = 0; body.getUint8(n) !== 0x0d; n += 32) {
     for (var j = 0; j < 11; ++j) if (body.getUint8(n + j) === 0) break;

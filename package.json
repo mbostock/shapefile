@@ -20,9 +20,7 @@
     "url": "https://github.com/mbostock/shapefile.git"
   },
   "bin": {
-    "dbfcat": "./bin/dbfcat",
-    "shpcat": "./bin/shpcat",
-    "shp2json": "./bin/shp2json"
+    "shp2json": "bin/shp2json"
   },
   "scripts": {
     "test": "tape 'test/**/*-test.js'",

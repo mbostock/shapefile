@@ -7,21 +7,18 @@ var fs = require('fs'),
 commander
     .version(require('../package.json').version)
     .usage('[options] <file>')
-    .option('-o, --out <file>', 'output file name; - for stdout')
+    .option('-o, --out <file>', 'output file name; defaults to “-” for stdout', '-')
     .option('-n, --newline-delimited', 'output newline-delimited JSON')
     .option('-g, --geometry', 'output geometries (implies --ignore-properties)')
     .option('--ignore-properties', 'don’t read shapefile properties (.dbf)')
     .option('--encoding <encoding>', 'character encoding for shapefile properties (.dbf)')
     .parse(process.argv);
 
-if (commander.args.length < 1) {
-  console.error('error: missing input file');
-  process.exit(1);
-}
+if (commander.args.length < 1) commander.args[0] = "-";
 
-var out = ([undefined, true, '-'].indexOf(commander.out) >= 0) ? process.stdout : fs.createWriteStream(commander.out);
+var out = commander.out === "-" ? process.stdout : fs.createWriteStream(commander.out);
 
-shapefile.open(commander.args[0], commander.geometry || commander.ignoreProperties ? null : undefined, {encoding: commander.encoding})
+shapefile.open(commander.args[0] === "-" ? process.stdin : commander.args[0], commander.geometry || commander.ignoreProperties ? null : undefined, {encoding: commander.encoding})
   .then(commander.newlineDelimited
       ? (commander.geometry ? writeNewlineDelimitedGeometries : writeNewlineDelimitedFeatures)
       : (commander.geometry ? writeGeometryCollection : writeFeatureCollection))

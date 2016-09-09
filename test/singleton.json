@@ -2,6 +2,6 @@
   "type": "FeatureCollection",
   "bbox": [1, 2, 1, 2],
   "features": [
-    {"type": "Feature","properties": {},"geometry": {"type": "Point", "coordinates": [1, 2]}}
+    {"type": "Feature", "properties": {}, "geometry": {"type": "Point", "coordinates": [1, 2]}}
   ]
 }

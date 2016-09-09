@@ -1,3 +1,3 @@
 export default function(record) {
-  return {shapeType: 1, x: record.getFloat64(4, true), y: record.getFloat64(12, true)};
+  return {type: "Point", coordinates: [record.getFloat64(4, true), record.getFloat64(12, true)]};
 };

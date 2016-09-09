@@ -1,14 +1,12 @@
 import slice from "slice-source";
-import shp_cancel from "./cancel";
-import shp_read from "./read";
 import view from "../view";
+import shp_cancel from "./cancel";
+import readMultiPoint from "./multipoint";
 import readNull from "./null";
 import readPoint from "./point";
-import readPoly from "./poly";
-import readMultiPoint from "./multipoint";
-
-var readPolyLine = readPoly(3),
-    readPolygon = readPoly(5);
+import readPolygon from "./polygon";
+import readPolyLine from "./polyline";
+import shp_read from "./read";
 
 var types = {
   0: readNull,
@@ -20,11 +18,6 @@ var types = {
   13: readPolyLine,
   15: readPolygon,
   18: readMultiPoint
-  // TODO 21 readPointM
-  // TODO 23 readPolyLineM
-  // TODO 25 readPolygonM
-  // TODO 28 readMultiPointM
-  // TODO 31 readMultiPatch
 };
 
 export default function(source) {
@@ -35,10 +28,10 @@ export default function(source) {
 };
 
 function Shp(source, header) {
-  this.shapeType = header.getInt32(32, true);
-  if (!(this.shapeType in types)) throw new Error("unsupported shape type: " + this.shapeType);
+  var type = header.getInt32(32, true);
+  if (!(type in types)) throw new Error("unsupported shape type: " + type);
   this._source = source;
-  this._type = types[this.shapeType];
+  this._type = types[type];
   this.bbox = [header.getFloat64(36, true), header.getFloat64(44, true), header.getFloat64(52, true), header.getFloat64(60, true)];
 }
 

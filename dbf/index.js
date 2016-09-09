@@ -17,10 +17,10 @@ function Dbf(source, decoder, head, body) {
   this._source = source;
   this._decode = decoder.decode.bind(decoder);
   this._recordLength = head.getUint16(10, true);
-  this.fields = [];
+  this._fields = [];
   for (var n = 0; body.getUint8(n) !== 0x0d; n += 32) {
     for (var j = 0; j < 11; ++j) if (body.getUint8(n + j) === 0) break;
-    this.fields.push({
+    this._fields.push({
       name: this._decode(new Uint8Array(body.buffer, body.byteOffset + n, j)),
       type: String.fromCharCode(body.getUint8(n + 11)),
       length: body.getUint8(n + 16)

@@ -23,8 +23,9 @@
     "shp2json": "bin/shp2json"
   },
   "scripts": {
+    "pretest": "rm -rf dist && mkdir dist && cp index.node.js dist/shapefile.node.js && rollup -g path-source,array-source,stream-source,slice-source -f cjs -- index.js | tail -n +2 >> dist/shapefile.node.js",
     "test": "tape 'test/**/*-test.js'",
-    "prepublish": "rm -rf dist && mkdir dist && cp index.node.js dist/shapefile.node.js && rollup -g path-source,array-source,stream-source,slice-source -f cjs -- index.js | tail -n +2 >> dist/shapefile.node.js && rollup -c --banner \"$(preamble)\" -f umd -n shapefile -o dist/shapefile.js -- index.js && uglifyjs --preamble \"$(preamble)\" -o dist/shapefile.min.js -cm -- dist/shapefile.js",
+    "prepublish": "npm run test && rollup -c --banner \"$(preamble)\" -f umd -n shapefile -o dist/shapefile.js -- index.js && uglifyjs --preamble \"$(preamble)\" -o dist/shapefile.min.js -cm -- dist/shapefile.js",
     "postpublish": "git push && git push --tags"
   },
   "dependencies": {

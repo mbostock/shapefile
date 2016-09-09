@@ -19,15 +19,15 @@ testConversion("ignore-properties", {ignoreProperties: true});
 
 function testConversion(name, options) {
   tape(name, function(test) {
-    shapefile.read("./test/" + name + ".shp", options)
-      .then((actual) => {
+    shapefile.read("./test/" + name + ".shp", undefined, options)
+      .then(actual => {
         var expected = JSON.parse(fs.readFileSync("./test/" + name + ".json", "utf-8"));
         actual.features.forEach(fixActualProperties);
         expected.features.forEach(fixExpectedProperties);
         test.deepEqual(actual, expected);
         test.end();
       })
-      .catch((error) => test.end(error));
+      .catch(error => test.end(error));
   });
 }
 

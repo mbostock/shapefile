@@ -44,6 +44,8 @@ For a live example, see [bl.ocks.org/2dd741099154a4da55a7db31fd96a892](http://bl
 
 This parser implementation is based on the [ESRI Shapefile Technical Description](http://www.esri.com/library/whitepapers/pdfs/shapefile.pdf) and [dBASE Table File Format](http://www.digitalpreservation.gov/formats/fdd/fdd000325.shtml). Caveat emptor: this is a work in progress and does not currently support all shapefile geometry types. It only supports dBASE III and has little error checking. Please contribute if you want to help!
 
+In-browser parsing of dBASE table files requires [TextDecoder](https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder#Browser_compatibility), part of the [Encoding living standard](https://encoding.spec.whatwg.org/), which is not supported in IE or Safari as of September, 2016. See [text-encoding](https://github.com/inexorabletash/text-encoding) for a browser polyfill.
+
 ## API Reference
 
 <a name="open" href="#open">#</a> shapefile.<b>open</b>(<i>shp</i>[, <i>dbf</i>[, <i>options</i>]]) [<>](https://github.com/mbostock/shapefile/blob/master/index.js#L6 "Source")

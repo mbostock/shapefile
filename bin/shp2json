@@ -52,15 +52,12 @@ function writeGeometryCollection(source) {
   out.write(',"geometries":[');
   return source.read().then(function(result) {
     if (result.done) return;
-    out.write('\n');
     out.write(JSON.stringify(result.value.geometry));
     return source.read().then(function repeat(result) {
       if (result.done) return;
-      out.write(',\n');
+      out.write(',');
       out.write(JSON.stringify(result.value.geometry));
       return source.read().then(repeat);
-    }).then(function() {
-      out.write('\n');
     });
   }).then(function() {
     out[out === process.stdout ? 'write' : 'end'](']}\n');
@@ -73,15 +70,12 @@ function writeFeatureCollection(source) {
   out.write(',"features":[');
   return source.read().then(function(result) {
     if (result.done) return;
-    out.write('\n');
     out.write(JSON.stringify(result.value));
     return source.read().then(function repeat(result) {
       if (result.done) return;
-      out.write(',\n');
+      out.write(',');
       out.write(JSON.stringify(result.value));
       return source.read().then(repeat);
-    }).then(function() {
-      out.write('\n');
     });
   }).then(function() {
     out[out === process.stdout ? 'write' : 'end'](']}\n');

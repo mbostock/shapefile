@@ -12,6 +12,7 @@ commander
     .option('-g, --geometry', 'output geometries (implies --ignore-properties)')
     .option('--ignore-properties', 'don’t read shapefile properties (.dbf)')
     .option('--encoding <encoding>', 'character encoding for shapefile properties (.dbf)')
+    .option('--crs-name <name>', 'specify a named CRS for the output feature collection')
     .parse(process.argv);
 
 if (commander.args.length < 1) commander.args[0] = "-";
@@ -76,6 +77,11 @@ function writeGeometryCollection(source) {
 function writeFeatureCollection(source) {
   out.write('{"type":"FeatureCollection","bbox":');
   out.write(JSON.stringify(source.bbox));
+  if (commander.crsName) {
+    out.write(',"crs":{"type":"name","properties":{"name":');
+    out.write(JSON.stringify(commander.crsName + ""));
+    out.write('}}');
+  }
   out.write(',"features":[');
   return source.read().then(function(result) {
     if (result.done) return;

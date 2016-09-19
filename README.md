@@ -69,6 +69,8 @@ The follwing options are supported:
 
 Returns a promise that yields a [GeoJSON feature collection](http://geojson.org/geojson-spec.html#feature-collection-objects) for specified shapefile *shp* and dBASE table file *dbf*. The meaning of the arguments is the same as [shapefile.open](#open). This is a convenience API for reading an entire shapefile in one go; use this method if you don’t mind putting the whole shapefile in memory. The yielded *collection* has a bbox property representing the bounding box of all records in this shapefile. The bounding box is specified as [*xmin*, *ymin*, *xmax*, *ymax*], where *x* and *y* represent longitude and latitude in spherical coordinates.
 
+The [coordinate reference system](http://geojson.org/geojson-spec.html#coordinate-reference-system-objects) of the feature collection is not specified. This library does not support parsing coordinate reference system specifications (.prj). [Proj4js](https://github.com/proj4js/proj4js) can parse most [well-known text (WKT)](https://en.wikipedia.org/wiki/Well-known_text#Coordinate_reference_system) specifications, but I’m not aware of any pure-JavaScript libraries that can convert these to OGC CRS URNs. (Please let me know if one exists!)
+
 <a name="source_bbox" href="#source_bbox">#</a> <i>source</i>.<b>bbox</b>
 
 The shapefile’s bounding box [*xmin*, *ymin*, *xmax*, *ymax*], where *x* and *y* represent longitude and latitude in spherical coordinates.
@@ -146,3 +148,7 @@ Ignore the corresponding dBASE table file (.dbf), if any. Output features will h
 <a name="shp2json_encoding" href="shp2json_encoding">#</a> shp2json <b>--encoding</b> <i>encoding</i>
 
 Specify the dBASE table file character encoding. Defaults to “windows-1252”.
+
+<a name="shp2json_crs_name" href="shp2json_crs_name">#</a> shp2json <b>--crs-name</b> <i>name</i>
+
+Specify the [coordinate reference system name](http://geojson.org/geojson-spec.html#named-crs). This only applies when generating a feature collection; it is ignored when [-n](#shp2json_newline_delimited) or [-g](#shp2json_geometry) is used. Per the GeoJSON specification, the name should be an OGC CRS URN such as `urn:ogc:def:crs:OGC:1.3:CRS84`. However, legacy identifiers such as `EPSG:4326` may also be used.

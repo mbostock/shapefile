@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "package-preamble": "0.0",
-    "rollup": "0.34",
+    "rollup": "0.36",
     "rollup-plugin-node-resolve": "2",
     "tape": "4",
     "uglify-js": "2"

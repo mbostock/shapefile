@@ -116,39 +116,39 @@ shp2json -ng example.shp
 
 When [--geometry](#shp2json_geometry) or [--ignore-properties](#shp2json_ignore_properties) is not used, the shapefile is joined to the dBASE table file (.dbf) file corresonding to the specified shapefile *file*, if any.
 
-<a name="shp2json_help" href="shp2json_help">#</a> shp2json <b>-h</b>
-<br><a href="shp2json_help">#</a> shp2json <b>--help</b>
+<a name="shp2json_help" href="#shp2json_help">#</a> shp2json <b>-h</b>
+<br><a href="#shp2json_help">#</a> shp2json <b>--help</b>
 
 Output usage information.
 
-<a name="shp2json_version" href="shp2json_version">#</a> shp2json <b>-V</b>
-<br><a href="shp2json_version">#</a> shp2json <b>--version</b>
+<a name="shp2json_version" href="#shp2json_version">#</a> shp2json <b>-V</b>
+<br><a href="#shp2json_version">#</a> shp2json <b>--version</b>
 
 Output the version number.
 
-<a name="shp2json_out" href="shp2json_out">#</a> shp2json <b>-o</b> <i>file</i>
-<br><a href="shp2json_out">#</a> shp2json <b>--out</b> <i>file</i>
+<a name="shp2json_out" href="#shp2json_out">#</a> shp2json <b>-o</b> <i>file</i>
+<br><a href="#shp2json_out">#</a> shp2json <b>--out</b> <i>file</i>
 
 Specify the output file name. Defaults to “-” for stdout.
 
-<a name="shp2json_newline_delimited" href="shp2json_newline_delimited">#</a> shp2json <b>-n</b>
-<br><a href="shp2json_newline_delimited">#</a> shp2json <b>--newline-delimited</b>
+<a name="shp2json_newline_delimited" href="#shp2json_newline_delimited">#</a> shp2json <b>-n</b>
+<br><a href="#shp2json_newline_delimited">#</a> shp2json <b>--newline-delimited</b>
 
 Output [newline-delimited JSON](http://ndjson.org/), with one feature or [geometry](#shp2json_geometry) per line.
 
-<a name="shp2json_geometry" href="shp2json_geometry">#</a> shp2json <b>-g</b>
-<br><a href="shp2json_geometry">#</a> shp2json <b>--geometry</b>
+<a name="shp2json_geometry" href="#shp2json_geometry">#</a> shp2json <b>-g</b>
+<br><a href="#shp2json_geometry">#</a> shp2json <b>--geometry</b>
 
 Output a [geometry collection](http://geojson.org/geojson-spec.html#geometrycollection) instead of a [feature collection](http://geojson.org/geojson-spec.html#feature-collection-objects) or, in conjuction with [--newline-delimited](#shp2json_newline_delimited), [geometry objects](http://geojson.org/geojson-spec.html#geometry-objects) instead of [feature objects](http://geojson.org/geojson-spec.html#feature-objects). Implies [--ignore-properties](#shp2json_ignore_properties).
 
-<a name="shp2json_ignore_properties" href="shp2json_ignore_properties">#</a> shp2json <b>--ignore-properties</b>
+<a name="shp2json_ignore_properties" href="#shp2json_ignore_properties">#</a> shp2json <b>--ignore-properties</b>
 
 Ignore the corresponding dBASE table file (.dbf), if any. Output features will have an empty properties object.
 
-<a name="shp2json_encoding" href="shp2json_encoding">#</a> shp2json <b>--encoding</b> <i>encoding</i>
+<a name="shp2json_encoding" href="#shp2json_encoding">#</a> shp2json <b>--encoding</b> <i>encoding</i>
 
 Specify the dBASE table file character encoding. Defaults to “windows-1252”.
 
-<a name="shp2json_crs_name" href="shp2json_crs_name">#</a> shp2json <b>--crs-name</b> <i>name</i>
+<a name="shp2json_crs_name" href="#shp2json_crs_name">#</a> shp2json <b>--crs-name</b> <i>name</i>
 
 Specify the [coordinate reference system name](http://geojson.org/geojson-spec.html#named-crs). This only applies when generating a feature collection; it is ignored when [-n](#shp2json_newline_delimited) or [-g](#shp2json_geometry) is used. Per the GeoJSON specification, the name should be an OGC CRS URN such as `urn:ogc:def:crs:OGC:1.3:CRS84`. However, legacy identifiers such as `EPSG:4326` may also be used.

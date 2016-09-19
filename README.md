@@ -152,3 +152,5 @@ Specify the dBASE table file character encoding. Defaults to “windows-1252”.
 <a name="shp2json_crs_name" href="#shp2json_crs_name">#</a> shp2json <b>--crs-name</b> <i>name</i>
 
 Specify the [coordinate reference system name](http://geojson.org/geojson-spec.html#named-crs). This only applies when generating a feature collection; it is ignored when [-n](#shp2json_newline_delimited) or [-g](#shp2json_geometry) is used. Per the GeoJSON specification, the name should be an OGC CRS URN such as `urn:ogc:def:crs:OGC:1.3:CRS84`. However, legacy identifiers such as `EPSG:4326` may also be used.
+
+This does not convert between coordinate reference systems! It merely allows you to specify the coordinate reference system in the output, since this library does not support parsing coordinate reference system specifications (.prj).

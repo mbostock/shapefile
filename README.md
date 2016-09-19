@@ -144,3 +144,13 @@ Ignore the corresponding dBASE table file (.dbf), if any. Output features will h
 <a name="shp2json_encoding" href="shp2json_encoding">#</a> shp2json <b>--encoding</b> <i>encoding</i>
 
 Specify the dBASE table file character encoding. Defaults to “windows-1252”.
+
+### TypeScript
+
+TypeScript implementation was added to the [DefinitelyTyped repository](https://github.com/DefinitelyTyped/DefinitelyTyped).
+
+**Install definition**
+
+```bash
+$ typings install --save --global dt~shapefile
+```

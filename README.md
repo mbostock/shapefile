@@ -46,7 +46,7 @@ This parser implementation is based on the [ESRI Shapefile Technical Description
 
 In-browser parsing of dBASE table files requires [TextDecoder](https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder#Browser_compatibility), part of the [Encoding living standard](https://encoding.spec.whatwg.org/), which is not supported in IE or Safari as of September, 2016. See [text-encoding](https://github.com/inexorabletash/text-encoding) for a browser polyfill.
 
-TypeScript definitions are available in [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped). Install as `typings install dt~shapefile`.
+TypeScript definitions are available in [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/shapefile). Install as `typings install dt~shapefile`.
 
 ## API Reference
 

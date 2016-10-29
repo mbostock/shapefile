@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 
-var fs = require('fs'),
-    commander = require('commander'),
-    shapefile = require('../');
+var fs = require("fs"),
+    commander = require("commander"),
+    shapefile = require("../");
 
 commander
-    .version(require('../package.json').version)
-    .usage('[options] <file>')
-    .option('-o, --out <file>', 'output file name; defaults to “-” for stdout', '-')
-    .option('-n, --newline-delimited', 'output newline-delimited JSON')
-    .option('-g, --geometry', 'output geometries (implies --ignore-properties)')
-    .option('--ignore-properties', 'don’t read shapefile properties (.dbf)')
-    .option('--encoding <encoding>', 'character encoding for shapefile properties (.dbf)')
-    .option('--crs-name <name>', 'specify a named CRS for the output feature collection')
+    .version(require("../package.json").version)
+    .usage("[options] [file]")
+    .option("-o, --out <file>", "output file name; defaults to “-” for stdout", "-")
+    .option("-n, --newline-delimited", "output newline-delimited JSON")
+    .option("-g, --geometry", "output geometries (implies --ignore-properties)")
+    .option("--ignore-properties", "don’t read shapefile properties (.dbf)")
+    .option("--encoding <encoding>", "character encoding for shapefile properties (.dbf)")
+    .option("--crs-name <name>", "specify a named CRS for the output feature collection")
     .parse(process.argv);
 
 if (commander.args.length < 1) commander.args[0] = "-";
@@ -20,7 +20,7 @@ if (commander.args.length < 1) commander.args[0] = "-";
 var out = commander.out === "-" ? process.stdout : fs.createWriteStream(commander.out);
 
 out.on("error", function(error) {
-  if (error.code === 'EPIPE' || error.errno === 'EPIPE') {
+  if (error.code === "EPIPE" || error.errno === "EPIPE") {
     process.exit(0);
   }
 });
@@ -38,7 +38,7 @@ function writeNewlineDelimitedGeometries(source) {
   return source.read().then(function repeat(result) {
     if (result.done) return;
     out.write(JSON.stringify(result.value.geometry));
-    out.write('\n');
+    out.write("\n");
     return source.read().then(repeat);
   }).then(function() {
     if (out !== process.stdout) out.end();
@@ -49,7 +49,7 @@ function writeNewlineDelimitedFeatures(source) {
   return source.read().then(function repeat(result) {
     if (result.done) return;
     out.write(JSON.stringify(result.value));
-    out.write('\n');
+    out.write("\n");
     return source.read().then(repeat);
   }).then(function() {
     if (out !== process.stdout) out.end();
@@ -57,42 +57,42 @@ function writeNewlineDelimitedFeatures(source) {
 }
 
 function writeGeometryCollection(source) {
-  out.write('{"type":"GeometryCollection","bbox":');
+  out.write("{\"type\":\"GeometryCollection\",\"bbox\":");
   out.write(JSON.stringify(source.bbox));
-  out.write(',"geometries":[');
+  out.write(",\"geometries\":[");
   return source.read().then(function(result) {
     if (result.done) return;
     out.write(JSON.stringify(result.value.geometry));
     return source.read().then(function repeat(result) {
       if (result.done) return;
-      out.write(',');
+      out.write(",");
       out.write(JSON.stringify(result.value.geometry));
       return source.read().then(repeat);
     });
   }).then(function() {
-    out[out === process.stdout ? 'write' : 'end'](']}\n');
+    out[out === process.stdout ? "write" : "end"]("]}\n");
   });
 }
 
 function writeFeatureCollection(source) {
-  out.write('{"type":"FeatureCollection","bbox":');
+  out.write("{\"type\":\"FeatureCollection\",\"bbox\":");
   out.write(JSON.stringify(source.bbox));
   if (commander.crsName) {
-    out.write(',"crs":{"type":"name","properties":{"name":');
+    out.write(",\"crs\":{\"type\":\"name\",\"properties\":{\"name\":");
     out.write(JSON.stringify(commander.crsName + ""));
-    out.write('}}');
+    out.write("}}");
   }
-  out.write(',"features":[');
+  out.write(",\"features\":[");
   return source.read().then(function(result) {
     if (result.done) return;
     out.write(JSON.stringify(result.value));
     return source.read().then(function repeat(result) {
       if (result.done) return;
-      out.write(',');
+      out.write(",");
       out.write(JSON.stringify(result.value));
       return source.read().then(repeat);
     });
   }).then(function() {
-    out[out === process.stdout ? 'write' : 'end'](']}\n');
+    out[out === process.stdout ? "write" : "end"]("]}\n");
   });
 }

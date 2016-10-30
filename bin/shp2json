@@ -7,6 +7,7 @@ var fs = require("fs"),
 commander
     .version(require("../package.json").version)
     .usage("[options] [file]")
+    .description("Convert a Shapefile to GeoJSON.")
     .option("-o, --out <file>", "output file name; defaults to “-” for stdout", "-")
     .option("-n, --newline-delimited", "output newline-delimited JSON")
     .option("-g, --geometry", "output geometries (implies --ignore-properties)")

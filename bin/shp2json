@@ -16,7 +16,13 @@ commander
     .option("--crs-name <name>", "specify a named CRS for the output feature collection")
     .parse(process.argv);
 
-if (commander.args.length < 1) commander.args[0] = "-";
+if (commander.args.length === 0) commander.args[0] = "-";
+else if (commander.args.length !== 1) {
+  console.error();
+  console.error("  error: multiple input files");
+  console.error();
+  process.exit(1);
+}
 
 var out = commander.out === "-" ? process.stdout : fs.createWriteStream(commander.out);
 
@@ -33,7 +39,12 @@ shapefile.open(
   .then(commander.newlineDelimited
       ? (commander.geometry ? writeNewlineDelimitedGeometries : writeNewlineDelimitedFeatures)
       : (commander.geometry ? writeGeometryCollection : writeFeatureCollection))
-  .catch(function(error) { console.error(error.stack); });
+  .catch(function(error) {
+    console.error();
+    console.error("  error: " + error.message);
+    console.error();
+    process.exit(1);
+  });
 
 function writeNewlineDelimitedGeometries(source) {
   return source.read().then(function repeat(result) {

@@ -19,9 +19,9 @@ export default function(record) {
     }) || polygons.push([hole]);
   });
 
-  return polygons.length > 1
-      ? {type: "MultiPolygon", coordinates: polygons}
-      : {type: "Polygon", coordinates: polygons[0]};
+  return polygons.length === 1
+      ? {type: "Polygon", coordinates: polygons[0]}
+      : {type: "MultiPolygon", coordinates: polygons};
 };
 
 function ringClockwise(ring) {

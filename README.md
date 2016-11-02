@@ -88,7 +88,7 @@ Returns a Promise which is resolved when the underlying stream has been destroye
 
 ## Command Line Reference
 
-<a name="shp2json" href="#shp2json">#</a> <b>shp2json</b> [<i>options…</i>] [<i>file</i>]
+<a name="shp2json" href="#shp2json">#</a> <b>shp2json</b> [<i>options…</i>] [<i>file</i>] [<>](https://github.com/mbostock/shapefile/blob/master/bin/shp2json "Source")
 
 Converts the specified shapefile *file* to GeoJSON. If *file* is not specified, defaults to reading from stdin (with no dBASE file). For example, to convert to a feature collection:
 

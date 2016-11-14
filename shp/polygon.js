@@ -10,9 +10,8 @@ export default function(record) {
   });
 
   holes.forEach(function(hole) {
-    var point = hole[0];
     polygons.some(function(polygon) {
-      if (ringContains(polygon[0], point)) {
+      if (ringContainsSome(polygon[0], hole)) {
         polygon.push(hole);
         return true;
       }
@@ -31,12 +30,36 @@ function ringClockwise(ring) {
   return area >= 0;
 }
 
+function ringContainsSome(ring, hole) {
+  var i = -1, n = hole.length, c;
+  while (++i < n) {
+    if (c = ringContains(ring, hole[i])) {
+      return c > 0;
+    }
+  }
+  return false;
+}
+
 function ringContains(ring, point) {
-  var x = point[0], y = point[1], contains = false;
+  var x = point[0], y = point[1], contains = -1;
   for (var i = 0, n = ring.length, j = n - 1; i < n; j = i++) {
     var pi = ring[i], xi = pi[0], yi = pi[1],
         pj = ring[j], xj = pj[0], yj = pj[1];
-    if (((yi > y) ^ (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) contains = !contains;
+    if (segmentContains(pi, pj, point)) {
+      return 0;
+    }
+    if (((yi > y) !== (yj > y)) && ((x < (xj - xi) * (y - yi) / (yj - yi) + xi))) {
+      contains = -contains;
+    }
   }
   return contains;
+}
+
+function segmentContains(p0, p1, p2) {
+  var x20 = p2[0] - p0[0], y20 = p2[1] - p0[1];
+  if (x20 === 0 && y20 === 0) return true;
+  var x10 = p1[0] - p0[0], y10 = p1[1] - p0[1];
+  if (x10 === 0 && y10 === 0) return false;
+  var t = (x20 * x10 + y20 * y10) / (x10 * x10 + y10 * y10);
+  return t < 0 || t > 1 ? false : t === 0 || t === 1 ? true : t * x10 === x20 && t * y10 === y20;
 }

@@ -34,7 +34,7 @@
     "path-source": "0.1",
     "slice-source": "0.4",
     "stream-source": "0.3",
-    "text-encoding": "0.6"
+    "text-encoding": "0.6.1"
   },
   "devDependencies": {
     "package-preamble": "0.0",

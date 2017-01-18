@@ -98,7 +98,7 @@ Calling [shapefile.open](#open) yields a *source*; you can then call [*source*.r
 
 <a name="source_bbox" href="#source_bbox">#</a> <i>source</i>.<b>bbox</b>
 
-The shapefile’s bounding box [*xmin*, *ymin*, *xmax*, *ymax*], where *x* and *y* represent longitude and latitude in spherical coordinates.
+The shapefile’s bounding box [*xmin*, *ymin*, *xmax*, *ymax*], where *x* and *y* represent longitude and latitude in spherical coordinates. This field is only defined on sources returned by [shapefile.open](#open) and [shapefile.openShp](#openShp), not [shapefile.openDbf](#openDbf).
 
 <a name="source_read" href="#source_read">#</a> <i>source</i>.<b>read</b>() [<>](https://github.com/mbostock/shapefile/blob/master/shapefile/read.js "Source")
 

@@ -19,7 +19,7 @@ In a browser:
 
 ```html
 <!DOCTYPE html>
-<script src="https://unpkg.com/shapefile@0.5"></script>
+<script src="https://unpkg.com/shapefile@0.6"></script>
 <script>
 
 shapefile.open("https://cdn.rawgit.com/mbostock/shapefile/master/test/points.shp")

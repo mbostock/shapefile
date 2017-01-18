@@ -73,7 +73,7 @@ The follwing options are supported:
 
 <a name="openShp" href="#openShp">#</a> shapefile.<b>openShp</b>(<i>shp</i>[, <i>options</i>]) [<>](https://github.com/mbostock/shapefile/blob/master/index.js#L33 "Source")
 
-Returns a promise that yields a GeoJSON geometry [*source*](#sources). Unlike [shapefile.open](#open), this only reads the shapefile, and never the associated dBASE file. Subsequent calls to [*source*.read](#source_read) will yield GeoJSON geometry objects.
+Returns a promise that yields a GeoJSON geometry [*source*](#sources). Unlike [shapefile.open](#open), this only reads the shapefile, and never the associated dBASE file. Subsequent calls to [*source*.read](#source_read) will yield GeoJSON geometries.
 
 If typeof *shp* is “string”, opens the shapefile at the specified *shp* path. If *shp* does not have a “.shp” extension, it is implicitly added. In Node, the files are read from the [file system](https://nodejs.org/api/fs.html); in browsers, the files are read using [streaming](https://www.chromestatus.com/feature/5804334163951616) [fetch](https://fetch.spec.whatwg.org/), if available, and falling back to [XMLHttpRequest](https://xhr.spec.whatwg.org/). (See [path-source](https://github.com/mbostock/path-source) for more.) If *shp* instanceof ArrayBuffer or *shp* instanceof Uint8Array, reads the specified in-memory shapefile. Otherwise, *shp* must be a [Node readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) in Node or a [WhatWG standard readable stream](https://streams.spec.whatwg.org/#rs) in browsers.
 
@@ -94,7 +94,7 @@ The follwing options are supported:
 
 ### Sources
 
-Calling [shapefile.open](#open) yields a *source*; you can then call [*source*.read](#source_read) to read individual GeoJSON features. Similarly, [shapefile.openShp](#openShp) yields a *source* of GeoJSON geometry objects, and [shapefile.openDbf](#openDbf) yields of a *source* of GeoJSON properties objects.
+Calling [shapefile.open](#open) yields a *source*; you can then call [*source*.read](#source_read) to read individual GeoJSON features. Similarly, [shapefile.openShp](#openShp) yields a *source* of GeoJSON geometries, and [shapefile.openDbf](#openDbf) yields of a *source* of GeoJSON properties objects.
 
 <a name="source_bbox" href="#source_bbox">#</a> <i>source</i>.<b>bbox</b>
 
@@ -168,7 +168,7 @@ Output [newline-delimited JSON](http://ndjson.org/), with one feature or [geomet
 <a name="shp2json_geometry" href="#shp2json_geometry">#</a> shp2json <b>-g</b>
 <br><a href="#shp2json_geometry">#</a> shp2json <b>--geometry</b>
 
-Output a [geometry collection](http://geojson.org/geojson-spec.html#geometrycollection) instead of a [feature collection](http://geojson.org/geojson-spec.html#feature-collection-objects) or, in conjuction with [--newline-delimited](#shp2json_newline_delimited), [geometry objects](http://geojson.org/geojson-spec.html#geometry-objects) instead of [feature objects](http://geojson.org/geojson-spec.html#feature-objects). Implies [--ignore-properties](#shp2json_ignore_properties).
+Output a [geometry collection](http://geojson.org/geojson-spec.html#geometrycollection) instead of a [feature collection](http://geojson.org/geojson-spec.html#feature-collection-objects) or, in conjuction with [--newline-delimited](#shp2json_newline_delimited), [geometries](http://geojson.org/geojson-spec.html#geometry-objects) instead of [feature objects](http://geojson.org/geojson-spec.html#feature-objects). Implies [--ignore-properties](#shp2json_ignore_properties).
 
 <a name="shp2json_ignore_properties" href="#shp2json_ignore_properties">#</a> shp2json <b>--ignore-properties</b>
 

@@ -75,9 +75,7 @@ The follwing options are supported:
 
 Returns a promise that yields an open shapefile *source*. Unlike [shapefile.open](#open), this only reads the shapefile, and never the associated dBASE file. Subsequent calls to [*source*.read](#source_read) will yield GeoJSON geometry objects.
 
-If typeof *shp* is “string”, opens the shapefile at the specified *shp* path. If *shp* does not have a “.shp” extension, it is implicitly added. If *shp* instanceof ArrayBuffer or *shp* instanceof Uint8Array, reads the specified in-memory shapefile. Otherwise, *shp* must be a [Node readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) in Node or a [WhatWG standard readable stream](https://streams.spec.whatwg.org/#rs) in browsers.
-
-If typeof *shp* is “string”, in Node, the files are read from the [file system](https://nodejs.org/api/fs.html); in browsers, the files are read using [streaming](https://www.chromestatus.com/feature/5804334163951616) [fetch](https://fetch.spec.whatwg.org/), if available, and falling back to [XMLHttpRequest](https://xhr.spec.whatwg.org/). See [path-source](https://github.com/mbostock/path-source) for more.
+If typeof *shp* is “string”, opens the shapefile at the specified *shp* path. If *shp* does not have a “.shp” extension, it is implicitly added. In Node, the files are read from the [file system](https://nodejs.org/api/fs.html); in browsers, the files are read using [streaming](https://www.chromestatus.com/feature/5804334163951616) [fetch](https://fetch.spec.whatwg.org/), if available, and falling back to [XMLHttpRequest](https://xhr.spec.whatwg.org/). (See [path-source](https://github.com/mbostock/path-source) for more.) If *shp* instanceof ArrayBuffer or *shp* instanceof Uint8Array, reads the specified in-memory shapefile. Otherwise, *shp* must be a [Node readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) in Node or a [WhatWG standard readable stream](https://streams.spec.whatwg.org/#rs) in browsers.
 
 The follwing options are supported:
 
@@ -87,9 +85,7 @@ The follwing options are supported:
 
 Returns a promise that yields an open dBASE *source*. Unlike [shapefile.open](#open), this only reads the dBASE file, and never the associated shapefile. Subsequent calls to [*source*.read](#source_read) will yield GeoJSON properties objects.
 
-If typeof *dbf* is “string”, opens the dBASE at the specified *dbf* path. If *dbf* does not have a “.dbf” extension, it is implicitly added. If *dbf* instanceof ArrayBuffer or *dbf* instanceof Uint8Array, reads the specified in-memory shapefile. Otherwise, *dbf* must be a [Node readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) in Node or a [WhatWG standard readable stream](https://streams.spec.whatwg.org/#rs) in browsers.
-
-If typeof *dbf* is “string”, in Node, the files are read from the [file system](https://nodejs.org/api/fs.html); in browsers, the files are read using [streaming](https://www.chromestatus.com/feature/5804334163951616) [fetch](https://fetch.spec.whatwg.org/), if available, and falling back to [XMLHttpRequest](https://xhr.spec.whatwg.org/). See [path-source](https://github.com/mbostock/path-source) for more.
+If typeof *dbf* is “string”, opens the dBASE at the specified *dbf* path. If *dbf* does not have a “.dbf” extension, it is implicitly added. In Node, the files are read from the [file system](https://nodejs.org/api/fs.html); in browsers, the files are read using [streaming](https://www.chromestatus.com/feature/5804334163951616) [fetch](https://fetch.spec.whatwg.org/), if available, and falling back to [XMLHttpRequest](https://xhr.spec.whatwg.org/). (See [path-source](https://github.com/mbostock/path-source) for more.) If *dbf* instanceof ArrayBuffer or *dbf* instanceof Uint8Array, reads the specified in-memory shapefile. Otherwise, *dbf* must be a [Node readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) in Node or a [WhatWG standard readable stream](https://streams.spec.whatwg.org/#rs) in browsers.
 
 The follwing options are supported:
 

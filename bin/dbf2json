@@ -1,0 +1,68 @@
+#!/usr/bin/env node
+
+var fs = require("fs"),
+    commander = require("commander"),
+    shapefile = require("../");
+
+commander
+    .version(require("../package.json").version)
+    .usage("[options] [file]")
+    .description("Convert a dBASE file to JSON.")
+    .option("-o, --out <file>", "output file name; defaults to “-” for stdout", "-")
+    .option("-n, --newline-delimited", "output newline-delimited JSON")
+    .option("--encoding <encoding>", "input character encoding")
+    .parse(process.argv);
+
+if (commander.args.length === 0) commander.args[0] = "-";
+else if (commander.args.length !== 1) {
+  console.error();
+  console.error("  error: multiple input files");
+  console.error();
+  process.exit(1);
+}
+
+var out = (commander.out === "-" ? process.stdout : fs.createWriteStream(commander.out)).on("error", handleEpipe);
+
+shapefile.openDbf(commander.args[0] === "-" ? process.stdin : commander.args[0], {encoding: commander.encoding})
+  .then(commander.newlineDelimited ? writeNewlineDelimitedProperties : writeProperties)
+  .catch(handleError);
+
+function writeNewlineDelimitedProperties(source) {
+  return source.read().then(function repeat(result) {
+    if (result.done) return;
+    out.write(JSON.stringify(result.value));
+    out.write("\n");
+    return source.read().then(repeat);
+  }).then(function() {
+    if (out !== process.stdout) out.end();
+  });
+}
+
+function writeProperties(source) {
+  out.write("[");
+  return source.read().then(function(result) {
+    if (result.done) return;
+    out.write(JSON.stringify(result.value));
+    return source.read().then(function repeat(result) {
+      if (result.done) return;
+      out.write(",");
+      out.write(JSON.stringify(result.value));
+      return source.read().then(repeat);
+    });
+  }).then(function() {
+    out[out === process.stdout ? "write" : "end"]("]\n");
+  });
+}
+
+function handleEpipe(error) {
+  if (error.code === "EPIPE" || error.errno === "EPIPE") {
+    process.exit(0);
+  }
+}
+
+function handleError(error) {
+  console.error();
+  console.error("  error: " + error.message);
+  console.error();
+  process.exit(1);
+}

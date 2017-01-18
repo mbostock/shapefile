@@ -1,7 +1,9 @@
 import path from "path-source";
 import array from "array-source";
 import stream from "stream-source";
+import dbf from "./dbf/index";
 import shapefile from "./shapefile/index";
+import shp from "./shp/index";
 
 export function open(shp, dbf, options) {
   if (typeof dbf === "string") {
@@ -25,6 +27,35 @@ export function open(shp, dbf, options) {
     var shp = sources[0], dbf = sources[1], encoding = "windows-1252";
     if (options && options.encoding != null) encoding = options.encoding;
     return shapefile(shp, dbf, dbf && new TextDecoder(encoding));
+  });
+}
+
+export function openShp(source) {
+  if (typeof source === "string") {
+    if (!/\.shp$/.test(source)) source += ".shp";
+    source = path(source, options);
+  } else if (source instanceof ArrayBuffer || source instanceof Uint8Array) {
+    source = array(source);
+  } else {
+    source = stream(source);
+  }
+  return source.then(shp);
+}
+
+export function openDbf(source, options) {
+  var encoding = "windows-1252";
+  if (options && options.encoding != null) encoding = options.encoding;
+  encoding = new TextDecoder(encoding);
+  if (typeof source === "string") {
+    if (!/\.dbf$/.test(source)) source += ".dbf";
+    source = path(source, options);
+  } else if (source instanceof ArrayBuffer || source instanceof Uint8Array) {
+    source = array(source);
+  } else {
+    source = stream(source);
+  }
+  return source.then(function(source) {
+    return dbf(source, encoding);
   });
 }
 

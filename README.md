@@ -104,8 +104,10 @@ The shapefile’s bounding box [*xmin*, *ymin*, *xmax*, *ymax*], where *x* and *
 
 Returns a Promise for the next record from the underlying stream. The yielded result is an object with the following properties:
 
-* `value` - a [GeoJSON feature](http://geojson.org/geojson-spec.html#feature-objects), or undefined if the stream ended
+* `value` - a JSON object, or undefined if the stream ended
 * `done` - a boolean which is true if the stream ended
+
+The type of JSON object depends on the type of *source*: it may be either a [GeoJSON feature](http://geojson.org/geojson-spec.html#feature-objects), a [GeoJSON geometry](http://geojson.org/geojson-spec.html#geometry-objects), or a GeoJSON properties object (any JSON object).
 
 <a name="source_cancel" href="#source_cancel">#</a> <i>source</i>.<b>cancel</b>() [<>](https://github.com/mbostock/shapefile/blob/master/shapefile/cancel.js "Source")
 

@@ -5,6 +5,7 @@ var fs = require("fs"),
 testConversion("empty");
 testConversion("boolean-property");
 testConversion("number-property");
+testConversion("number-null-property");
 testConversion("string-property");
 testConversion("mixed-properties");
 testConversion("date-property");

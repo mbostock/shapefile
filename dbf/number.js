@@ -1,3 +1,3 @@
 export default function(value) {
-  return isNaN(value = +value) ? null : value;
+  return !(value = value.trim()) || isNaN(value = +value) ? null : value;
 }

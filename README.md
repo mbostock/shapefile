@@ -92,6 +92,10 @@ The follwing options are supported:
 * `encoding` - the dBASE character encoding; defaults to “windows-1252”
 * `highWaterMark` - in Node, the size of the stream’s internal buffer; defaults to 65536
 
+### Sources
+
+Calling [shapefile.open](#open) yields a *source*. You can then call [*source*.read](#source_read) to read individual GeoJSON objects.
+
 <a name="source_bbox" href="#source_bbox">#</a> <i>source</i>.<b>bbox</b>
 
 The shapefile’s bounding box [*xmin*, *ymin*, *xmax*, *ymax*], where *x* and *y* represent longitude and latitude in spherical coordinates.

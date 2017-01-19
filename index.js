@@ -39,7 +39,7 @@ export function openShp(source) {
   } else {
     source = stream(source);
   }
-  return source.then(shp);
+  return Promise.resolve(source).then(shp);
 }
 
 export function openDbf(source, options) {
@@ -54,7 +54,7 @@ export function openDbf(source, options) {
   } else {
     source = stream(source);
   }
-  return source.then(function(source) {
+  return Promise.resolve(source).then(function(source) {
     return dbf(source, encoding);
   });
 }

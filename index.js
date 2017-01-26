@@ -30,7 +30,7 @@ export function open(shp, dbf, options) {
   });
 }
 
-export function openShp(source) {
+export function openShp(source, options) {
   if (typeof source === "string") {
     if (!/\.shp$/.test(source)) source += ".shp";
     source = path(source, options);

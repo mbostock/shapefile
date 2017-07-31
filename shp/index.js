@@ -14,10 +14,14 @@ var parsers = {
   3: parsePolyLine,
   5: parsePolygon,
   8: parseMultiPoint,
-  11: parsePoint,
-  13: parsePolyLine,
-  15: parsePolygon,
-  18: parseMultiPoint
+  11: parsePoint, // PointZ
+  13: parsePolyLine, // PolyLineZ
+  15: parsePolygon, // PolygonZ
+  18: parseMultiPoint, // MultiPointZ
+  21: parsePoint, // PointM
+  23: parsePolyLine, // PolyLineM
+  25: parsePolygon, // PolygonM
+  28: parseMultiPoint // MultiPointM
 };
 
 export default function(source) {

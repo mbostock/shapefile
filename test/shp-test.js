@@ -3,6 +3,10 @@ var fs = require("fs"),
     shapefile = require("../");
 
 testConversion("ignore-properties");
+testConversion("multipointm");
+testConversion("pointm");
+testConversion("polygonm");
+testConversion("polylinem");
 testConversion("ne_10m_time_zones");
 testConversion("ne_10m_railroads");
 

@@ -3,6 +3,8 @@ var fs = require("fs"),
     shapefile = require("../");
 
 testConversion("ignore-properties");
+testConversion("ne_10m_time_zones");
+testConversion("ne_10m_railroads");
 
 function testConversion(name, options) {
   tape("shapefile.openShp(" + name + ")", function(test) {

@@ -12,7 +12,8 @@
     "name": "Mike Bostock",
     "url": "https://bost.ocks.org/mike"
   },
-  "browser": "dist/shapefile.js",
+  "unpkg": "dist/shapefile.js",
+  "jsdelivr": "dist/shapefile.js",
   "main": "dist/shapefile.node.js",
   "module": "index.js",
   "repository": {
@@ -26,7 +27,7 @@
   "scripts": {
     "pretest": "rm -rf dist && mkdir dist && cp index.node.js dist/shapefile.node.js && rollup -g path-source,array-source,stream-source,slice-source -f cjs -- index.js | tail -n +2 >> dist/shapefile.node.js",
     "test": "tape 'test/**/*-test.js'",
-    "prepublish": "npm run test && rollup -c --banner \"$(preamble)\" -f umd -n shapefile -o dist/shapefile.js -- index.js && uglifyjs -b beautify=false,preamble=\"'$(preamble)'\" -o dist/shapefile.min.js -cm -- dist/shapefile.js",
+    "prepublishOnly": "npm run test && rollup -c --banner \"$(preamble)\" && uglifyjs -b beautify=false,preamble=\"'$(preamble)'\" -o dist/shapefile.min.js -cm -- dist/shapefile.js",
     "postpublish": "git push && git push --tags && zip -j dist/shapefile.zip -- LICENSE.txt README.md dist/shapefile.js dist/shapefile.min.js"
   },
   "dependencies": {
@@ -39,7 +40,7 @@
   },
   "devDependencies": {
     "package-preamble": "0.1",
-    "rollup": "0.45",
+    "rollup": "0.49",
     "rollup-plugin-node-resolve": "3",
     "tape": "4",
     "uglify-js": "3"

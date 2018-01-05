@@ -16,6 +16,7 @@ function Shapefile(shp, dbf) {
   this._shp = shp;
   this._dbf = dbf;
   this.bbox = shp.bbox;
+  this.featureCount = dbf && dbf.featureCount;
 }
 
 var prototype = Shapefile.prototype;

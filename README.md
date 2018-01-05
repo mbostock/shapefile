@@ -101,6 +101,10 @@ Calling [shapefile.open](#open) yields a *source*; you can then call [*source*.r
 
 The shapefile’s bounding box [*xmin*, *ymin*, *xmax*, *ymax*], where *x* and *y* represent longitude and latitude in spherical coordinates. This field is only defined on sources returned by [shapefile.open](#open) and [shapefile.openShp](#openShp), not [shapefile.openDbf](#openDbf).
 
+<a name="source_featureCount" href="#source_featureCount">#</a> <i>source</i>.<b>featureCount</b>
+
+The number of features present, determined by looking at the header of the .dbf file. This field is only defined on sources returned by [shapefile.open](#open) and [shapefile.openDbf](#openDbf), not [shapefile.openShp](#openShp).
+
 <a name="source_read" href="#source_read">#</a> <i>source</i>.<b>read</b>() [<>](https://github.com/mbostock/shapefile/blob/master/shapefile/read.js "Source")
 
 Returns a Promise for the next record from the underlying stream. The yielded result is an object with the following properties:

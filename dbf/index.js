@@ -17,7 +17,7 @@ function Dbf(source, decoder, head, body) {
   this._source = source;
   this._decode = decoder.decode.bind(decoder);
   this._recordLength = head.getUint16(10, true);
-  this.featureCount = head.getUint16(4, true);
+  this.size = head.getUint16(4, true);
   this._fields = [];
   for (var n = 0; body.getUint8(n) !== 0x0d; n += 32) {
     for (var j = 0; j < 11; ++j) if (body.getUint8(n + j) === 0) break;

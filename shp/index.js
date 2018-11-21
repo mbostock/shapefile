@@ -2,10 +2,14 @@ import slice from "slice-source";
 import view from "../view";
 import shp_cancel from "./cancel";
 import parseMultiPoint from "./multipoint";
+import parseMultiPointZ from "./multipointz";
 import parseNull from "./null";
 import parsePoint from "./point";
 import parsePolygon from "./polygon";
 import parsePolyLine from "./polyline";
+import parsePointZ from "./pointz";
+import parsePolygonZ from "./polygonz";
+import parsePolyLineZ from "./polylinez";
 import shp_read from "./read";
 
 var parsers = {
@@ -14,10 +18,10 @@ var parsers = {
   3: parsePolyLine,
   5: parsePolygon,
   8: parseMultiPoint,
-  11: parsePoint, // PointZ
-  13: parsePolyLine, // PolyLineZ
-  15: parsePolygon, // PolygonZ
-  18: parseMultiPoint, // MultiPointZ
+  11: parsePointZ, // PointZ
+  13: parsePolyLineZ, // PolyLineZ
+  15: parsePolygonZ, // PolygonZ
+  18: parseMultiPointZ, // MultiPointZ
   21: parsePoint, // PointM
   23: parsePolyLine, // PolyLineM
   25: parsePolygon, // PolygonM

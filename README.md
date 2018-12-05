@@ -224,3 +224,29 @@ Output [newline-delimited JSON](http://ndjson.org/), with one object per line.
 <a name="dbf2json_encoding" href="#dbf2json_encoding">#</a> dbf2json <b>--encoding</b> <i>encoding</i>
 
 Specify the input character encoding. Defaults to “windows-1252”.
+
+### Handling other coordinate reference systems
+
+This library does not directly support reprojection. If you require the output GeoJSON in WGS84, you can use the `reproject` library as follows.
+
+If there is a `.prj` file present:
+
+```
+const shapefile = require('shapefile');
+const reproject = require('reproject');
+shapefile.read(basename + '.shp').then(result => {
+    const prj = fs.readFileSync(basename + '.prj', 'utf-8');
+    const projected = reproject.toWgs84(result, prj);
+});
+```
+
+If you know the EPSG code for the source projection:
+
+```
+const shapefile = require('shapefile');
+const reproject = require('reproject');
+const epsg = require('epsg');
+shapefile.read(basename + '.shp').then(result => {
+    const projected = reproject.toWgs84(result, 'EPSG:3857', epsg);
+});
+```

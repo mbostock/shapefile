@@ -24,21 +24,24 @@ var parsers = {
   28: parseMultiPoint // MultiPointM
 };
 
-export default function(source) {
+export default function(source, xform) {
   source = slice(source);
   return source.slice(100).then(function(array) {
-    return new Shp(source, view(array));
+    return new Shp(source, view(array), xform);
   });
 };
 
-function Shp(source, header) {
+function Shp(source, header, xform) {
   var type = header.getInt32(32, true);
   if (!(type in parsers)) throw new Error("unsupported shape type: " + type);
   this._source = source;
+  this._xform = xform || function (x) { x };
   this._type = type;
   this._index = 0;
   this._parse = parsers[type];
-  this.bbox = [header.getFloat64(36, true), header.getFloat64(44, true), header.getFloat64(52, true), header.getFloat64(60, true)];
+  var topLeft = xform([header.getFloat64(36, true), header.getFloat64(44, true)]);
+  var botRight = xform([header.getFloat64(52, true), header.getFloat64(60, true)]);
+  this.bbox = [ topLeft[0], topLeft[1], botRight[0], botRight[1] ];
 }
 
 var prototype = Shp.prototype;

@@ -34,13 +34,14 @@
     "array-source": "0.0",
     "commander": "2",
     "path-source": "0.1",
+    "proj4": "2.7.0",
     "slice-source": "0.4",
     "stream-source": "0.3",
     "text-encoding": "^0.6.4"
   },
   "devDependencies": {
     "package-preamble": "0.1",
-    "rollup": "0.49",
+    "rollup": "^0.49.3",
     "rollup-plugin-node-resolve": "3",
     "tape": "4",
     "uglify-js": "3"

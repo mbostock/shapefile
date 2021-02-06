@@ -3,9 +3,9 @@ import shp from "../shp/index";
 import shapefile_cancel from "./cancel";
 import shapefile_read from "./read";
 
-export default function(shpSource, dbfSource, decoder) {
+export default function(shpSource, dbfSource, decoder, xform) {
   return Promise.all([
-    shp(shpSource),
+    shp(shpSource, xform),
     dbfSource && dbf(dbfSource, decoder)
   ]).then(function(sources) {
     return new Shapefile(sources[0], sources[1]);

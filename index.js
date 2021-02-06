@@ -26,7 +26,7 @@ export function open(shp, dbf, options) {
   return Promise.all([shp, dbf]).then(function(sources) {
     var shp = sources[0], dbf = sources[1], encoding = "windows-1252";
     if (options && options.encoding != null) encoding = options.encoding;
-    return shapefile(shp, dbf, dbf && new TextDecoder(encoding));
+    return shapefile(shp, dbf, dbf && new TextDecoder(encoding), options ? options.xform : function (x) {x});
   });
 }
 

@@ -2,7 +2,8 @@
 
 var fs = require("fs"),
     commander = require("commander"),
-    shapefile = require("../");
+    shapefile = require("../"),
+    proj4 = require('proj4');
 
 commander
     .version(require("../package.json").version)
@@ -26,10 +27,18 @@ else if (commander.args.length !== 1) {
 
 var out = (commander.out === "-" ? process.stdout : fs.createWriteStream(commander.out)).on("error", handleEpipe);
 
+// My addition to read prj file, turn it into a function that I will apply to all coordinates
+var shpFilename = commander.args[0],
+    prjFilename = shpFilename.substring(0, shpFilename.length - 4) + ".prj",
+    prjStr = fs.readFileSync(prjFilename).toString(),
+    prj = proj4(prjStr),
+    xform = prj.inverse.bind(prj);
+// end for now, but `xform` will be passed around
+
 shapefile.open(
     commander.args[0] === "-" ? process.stdin : commander.args[0],
     commander.geometry || commander.ignoreProperties ? null : undefined,
-    {encoding: commander.encoding})
+    {encoding: commander.encoding, xform: xform})
   .then(commander.newlineDelimited
       ? (commander.geometry ? writeNewlineDelimitedGeometries : writeNewlineDelimitedFeatures)
       : (commander.geometry ? writeGeometryCollection : writeFeatureCollection))

@@ -23,7 +23,9 @@ export default function() {
       p[f.name] = types[f.type](that._decode(value.subarray(i, i += f.length)));
       return p;
     }, {});
-    values.markedAsDeleted = value[0] === 0x2A;
+    if (value[0] === 0x2A) {
+      values.markedAsDeleted = true;
+    }
     return {done: false, value: values};
   });
 }

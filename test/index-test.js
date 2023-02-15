@@ -2,6 +2,7 @@ var fs = require("fs"),
     tape = require("tape"),
     shapefile = require("../");
 
+testConversion("Congress22");
 testConversion("empty");
 testConversion("boolean-property");
 testConversion("number-property");
